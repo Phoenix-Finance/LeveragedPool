@@ -50,21 +50,25 @@ contract leveragedFactroy is Ownable{
 
     function createLeveragePool(address tokenA,address tokenB,uint256 leverageRatio,
         uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth)external 
-        onlyOwner returns (address _stakePoolA,address _stakePoolB,address payable _leveragePool){
-        _stakePoolA = getStakePool(tokenA);
-        _stakePoolB = getStakePool(tokenB);
-        require(_stakePoolA!=address(0) && _stakePoolB!=address(0),"Stake pool is not created");
+        onlyOwner returns (address payable _leveragePool){
         bytes32 poolKey = getPairHash(tokenA,tokenB,leverageRatio);
         _leveragePool = leveragePoolMap[poolKey];
         if(_leveragePool == address(0)){
-            fnxProxy proxy = new fnxProxy(leveragePoolImpl,leveragePoolVersion);
-            ILeveragedPool newPool = ILeveragedPool(address(proxy));
-            newPool.setLeveragePoolInfo(rebaseTokenImpl,leveragePoolVersion,_stakePoolA,_stakePoolB,
-                fnxOracle,uniswap,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth,baseCoinName);
-            _leveragePool = address(uint160(address(newPool)));
+            _leveragePool = createLeveragePool_sub(tokenA,tokenB,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth);
             leveragePoolMap[poolKey] = _leveragePool;
             leveragePoolList.push(_leveragePool);
         }
+    }
+    function createLeveragePool_sub(address tokenA,address tokenB,uint256 leverageRatio,
+        uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth)internal returns (address payable _leveragePool){
+        address _stakePoolA = getStakePool(tokenA);
+        address _stakePoolB = getStakePool(tokenB);
+        require(_stakePoolA!=address(0) && _stakePoolB!=address(0),"Stake pool is not created");
+        fnxProxy proxy = new fnxProxy(leveragePoolImpl,leveragePoolVersion);
+        ILeveragedPool newPool = ILeveragedPool(address(proxy));
+        newPool.setLeveragePoolInfo(rebaseTokenImpl,leveragePoolVersion,_stakePoolA,_stakePoolB,
+            fnxOracle,uniswap,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth,baseCoinName);
+        _leveragePool = address(uint160(address(proxy)));
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
         view returns (address _stakePoolA,address _stakePoolB,address _leveragePool){
