@@ -13,9 +13,9 @@ contract stakePool is ImportIFPTCoin{
     event DebugEvent(address indexed from,uint256 value1,uint256 value2);
     function initialize() public{
     }
-    function setPoolInfo(address fptToken,address poolToken,uint64 interestrate) public{
+    function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) public{
         _FPTCoin = IFPTCoin(fptToken);
-        _poolToken = poolToken;
+        _poolToken = stakeToken;
         _interestRate = interestrate;
     }
 

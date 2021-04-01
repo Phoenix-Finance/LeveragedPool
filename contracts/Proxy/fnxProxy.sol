@@ -1,9 +1,9 @@
 pragma solidity =0.5.16;
 /**
- * @title  newBaseProxy Contract
+ * @title  fnxProxy Contract
 
  */
-contract newBaseProxy {
+contract fnxProxy {
     bytes32 private constant implementPositon = keccak256("org.Finnexus.implementation.storage");
     bytes32 private constant versionPositon = keccak256("org.Finnexus.version.storage");
     bytes32 private constant proxyOwnerPosition  = keccak256("org.Finnexus.Owner.storage");
@@ -72,7 +72,7 @@ contract newBaseProxy {
             sstore(position, _newImplementation)
         }
     }
-    function setImplementation(address _newImplementation,uint256 version_)public onlyProxyOwner{
+    function upgradeTo(address _newImplementation,uint256 version_)public onlyProxyOwner upgradeVersion(version_){
         address currentImplementation = implementation();
         require(currentImplementation != _newImplementation);
         _setImplementation(_newImplementation);
@@ -81,70 +81,31 @@ contract newBaseProxy {
         (bool success,) = _newImplementation.delegatecall(abi.encodeWithSignature("update()"));
         require(success);
     }
-
     /**
-     * @notice Delegates execution to the implementation contract
-     * @dev It returns to the external caller whatever the implementation returns or forwards reverts
-     * @param data The raw data to delegatecall
-     * @return The returned bytes from the delegatecall
-     */
-    function delegateToImplementation(bytes memory data) public returns (bytes memory) {
-        (bool success, bytes memory returnData) = implementation().delegatecall(data);
-        assembly {
-            if eq(success, 0) {
-                revert(add(returnData, 0x20), returndatasize)
-            }
-        }
-        return returnData;
-    }
-
-    /**
-     * @notice Delegates execution to an implementation contract
-     * @dev It returns to the external caller whatever the implementation returns or forwards reverts
-     *  There are an additional 2 prefix uints from the wrapper returndata, which we ignore since we make an extra hop.
-     * @param data The raw data to delegatecall
-     * @return The returned bytes from the delegatecall
-     */
-    function delegateToViewImplementation(bytes memory data) public view returns (bytes memory) {
-        (bool success, bytes memory returnData) = address(this).staticcall(abi.encodeWithSignature("delegateToImplementation(bytes)", data));
-        assembly {
-            if eq(success, 0) {
-                revert(add(returnData, 0x20), returndatasize)
-            }
-        }
-        return abi.decode(returnData, (bytes));
-    }
-
-    function delegateToViewAndReturn() internal view returns (bytes memory) {
-        (bool success, ) = address(this).staticcall(abi.encodeWithSignature("delegateToImplementation(bytes)", msg.data));
-
-        assembly {
-            let free_mem_ptr := mload(0x40)
-            returndatacopy(free_mem_ptr, 0, returndatasize)
-
-            switch success
-            case 0 { revert(free_mem_ptr, returndatasize) }
-            default { return(add(free_mem_ptr, 0x40), sub(returndatasize, 0x40)) }
-        }
-    }
-
-    function delegateAndReturn() internal returns (bytes memory) {
-        (bool success, ) = implementation().delegatecall(msg.data);
-
-        assembly {
-            let free_mem_ptr := mload(0x40)
-            returndatacopy(free_mem_ptr, 0, returndatasize)
-
-            switch success
-            case 0 { revert(free_mem_ptr, returndatasize) }
-            default { return(free_mem_ptr, returndatasize) }
-        }
-    }
-        /**
     * @dev Throws if called by any account other than the owner.
     */
     modifier onlyProxyOwner() {
-        require (msg.sender == proxyOwner());
+        require (msg.sender == proxyOwner(),"proxyOwner: caller is not the proxy owner");
         _;
+    }
+    modifier upgradeVersion(uint256 version_) {
+        require (version_>version(),"upgrade version number must greater than current version");
+        _;
+    }
+    function () payable external {
+        address _impl = implementation();
+        require(_impl != address(0));
+
+        assembly {
+        let ptr := mload(0x40)
+        calldatacopy(ptr, 0, calldatasize)
+        let result := delegatecall(gas, _impl, ptr, calldatasize, 0, 0)
+        let size := returndatasize
+        returndatacopy(ptr, 0, size)
+
+        switch result
+        case 0 { revert(ptr, size) }
+        default { return(ptr, size) }
+        }
     }
 }

@@ -10,7 +10,6 @@ interface IFPTCoin {
     function burn(address account, uint256 amount) external;
     function addlockBalance(address account, uint256 amount,uint256 lockedWorth)external; 
     function getTotalLockedWorth() external view returns (uint256);
-    function addMinerBalance(address account,uint256 amount) external;
     function redeemLockedCollateral(address account,uint256 tokenAmount,uint256 leftCollateral)external returns (uint256,uint256);
 }
 contract ImportIFPTCoin is Ownable{

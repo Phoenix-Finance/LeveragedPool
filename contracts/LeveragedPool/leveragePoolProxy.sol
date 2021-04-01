@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
 import "../Proxy/newBaseProxy.sol";
 contract leveragePoolProxy is newBaseProxy {
-    constructor (address implementation_) newBaseProxy(implementation_) public{
+    constructor (address implementation_) newBaseProxy(implementation_,1) public{
     }
     function() external payable {
         

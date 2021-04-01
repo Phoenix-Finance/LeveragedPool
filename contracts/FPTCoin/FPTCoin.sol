@@ -11,11 +11,8 @@ import "../modules/SafeMath.sol";
 contract FPTCoin is SharedCoin {
     using SafeMath for uint256;
     mapping (address => bool) internal timeLimitWhiteList;
-    constructor (string memory tokenName)public{
+    constructor ()public{
         initialize();
-        //_FnxMinePool = IFNXMinePool(minePoolAddr);
-        name = tokenName;
-        symbol = tokenName;
     }
     /**
      * @dev constructor function. set FNX minePool contract address. 
@@ -24,7 +21,22 @@ contract FPTCoin is SharedCoin {
         SharedCoin.initialize();
     }
     function update() onlyOwner public{
-//        timeLimitWhiteList[0xf1FF936B72499382983a8fBa9985C41cB80BE17D] = true;
+    }
+  /**
+     * EXTERNAL FUNCTION
+     *
+     * @dev change token name
+     * @param _name token name
+     * @param _symbol token symbol
+     *
+     */
+    function changeTokenName(string memory _name, string memory _symbol)
+        public
+        onlyOwner
+    {
+        //check parameter in ico minter contract
+        name = _name;
+        symbol = _symbol;
     }
     /**
      * @dev Retrieve user's start time for burning. 

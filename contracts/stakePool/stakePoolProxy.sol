@@ -3,7 +3,7 @@ import "../Proxy/newBaseProxy.sol";
 import "../FPTCoin/FPTProxy.sol";
 contract stakePoolProxy is newBaseProxy {
     constructor (address implementation_,address _poolToken,address FPTimple_,string memory tokenName,uint64 interestrate)
-        newBaseProxy(implementation_) public{
+        newBaseProxy(implementation_,1) public{
         FPTProxy fpt = new FPTProxy(FPTimple_,tokenName);
         fpt.setManager(address(this));
         (bool success,) = implementation_.delegatecall(abi.encodeWithSignature(

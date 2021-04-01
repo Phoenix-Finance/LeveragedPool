@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
 import "../Proxy/newBaseProxy.sol";
 contract rebaseTokenProxy is newBaseProxy {
-    constructor (address implementation_,string memory tokenName) newBaseProxy(implementation_) public{
+    constructor (address implementation_,string memory tokenName) newBaseProxy(implementation_,1) public{
         (bool success,) = implementation_.delegatecall(abi.encodeWithSignature(
             "setTokenName(string)",tokenName));
         require(success);
