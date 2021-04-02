@@ -1,9 +1,9 @@
 const rebaseToken = artifacts.require("rebaseToken");
-const rebaseTokenProxy = artifacts.require("rebaseTokenProxy");
+const fnxProxy = artifacts.require("fnxProxy");
 contract('rebaseToken', function (accounts){
     it('rebaseToken normal tests', async function (){
         let rToken = await rebaseToken.new();
-        await rToken.setTokenName("leverageToken");
+        await rToken.changeTokenName("leverageToken","lToken");
         let name = await rToken.name();
         console.log(name);
         let symbol = await rToken.symbol();
@@ -45,7 +45,9 @@ contract('rebaseToken', function (accounts){
     })
     it('rebaseToken proxy normal tests', async function (){
         let rTokenImply = await rebaseToken.new();
-        let rToken = await rebaseTokenProxy.new(rTokenImply.address,"leverageToken");
+        let rToken = await fnxProxy.new(rTokenImply.address,1);
+        rToken = await rebaseToken.at(rToken.address);
+        rToken.changeTokenName("rebase Token","RBT");
         let name = await rToken.name();
         console.log(name);
         let symbol = await rToken.symbol();

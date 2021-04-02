@@ -20,24 +20,24 @@ contract ImportOracle is Ownable{
         uint256[] memory prices = _oracle.getPrices(assets);
         uint256 len = assets.length;
         for (uint i=0;i<len;i++){
-        require(prices[i] >= 100 && prices[i] <= 1e30);
+        require(prices[i] >= 100 && prices[i] <= 1e30,"oracle price error");
         }
         return prices;
     }
     function oraclePrice(address asset) internal view returns (uint256){
         uint256 price = _oracle.getPrice(asset);
-        require(price >= 100 && price <= 1e30);
+        require(price >= 100 && price <= 1e30,"oracle price error");
         return price;
     }
     function oracleUnderlyingPrice(uint256 cToken) internal view returns (uint256){
         uint256 price = _oracle.getUnderlyingPrice(cToken);
-        require(price >= 100 && price <= 1e30);
+        require(price >= 100 && price <= 1e30,"oracle price error");
         return price;
     }
     function oracleAssetAndUnderlyingPrice(address asset,uint256 cToken) internal view returns (uint256,uint256){
         (uint256 price1,uint256 price2) = _oracle.getAssetAndUnderlyingPrice(asset,cToken);
-        require(price1 >= 100 && price1 <= 1e30);
-        require(price2 >= 100 && price2 <= 1e30);
+        require(price1 >= 100 && price1 <= 1e30,"oracle price error");
+        require(price2 >= 100 && price2 <= 1e30,"oracle price error");
         return (price1,price2);
     }
     function getOracleAddress() public view returns(address){

@@ -2,7 +2,7 @@
 const leveragedPool = artifacts.require("leveragedPool");
 const rebaseToken = artifacts.require("rebaseToken");
 const stakePool = artifacts.require("stakePool");
-const stakePoolProxy = artifacts.require("stakePoolProxy");
+const fnxProxy = artifacts.require("fnxProxy");
 const FPTCoin = artifacts.require("FPTCoin");
 const IERC20 = artifacts.require("IERC20");
 const FNXOracle = artifacts.require("FNXOracle");
@@ -28,7 +28,7 @@ contract('leveragedPool', function (accounts){
 
         let rTokenImply = await rebaseToken.new();
 
-        let fptCoin = await FPTCoin.new("FPT_stake");
+        let fptCoin = await FPTCoin.new();
         let oracle = await FNXOracle.new();
         await oracle.setOperator(0,accounts[0]);
         await oracle.setPrice(fnx.address,1e8);

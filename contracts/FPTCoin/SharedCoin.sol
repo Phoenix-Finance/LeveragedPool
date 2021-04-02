@@ -4,8 +4,26 @@ import "../modules/SafeMath.sol";
 import "./FPTData.sol";
 contract SharedCoin is FPTData  {
     using SafeMath for uint256;
-    function initialize() onlyOwner public{
+    function initialize() public{
         _totalSupply = 0;
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), _owner);
+    }
+    /**
+     * EXTERNAL FUNCTION
+     *
+     * @dev change token name
+     * @param _name token name
+     * @param _symbol token symbol
+     *
+     */
+    function changeTokenName(string memory _name, string memory _symbol)
+        public
+        onlyOwner
+    {
+        //check parameter in ico minter contract
+        name = _name;
+        symbol = _symbol;
     }
     /**
      * @dev See {IERC20-totalSupply}.

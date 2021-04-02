@@ -35,40 +35,58 @@ contract leveragedFactroy is Ownable{
     uint256 public rebaseTokenVersion;
 
     address public fnxOracle;
+    address public uniswap;
+
+    address payable public feeAddress;
+
+    //feeDecimals = 8; 
     uint64 public buyFee;
     uint64 public sellFee;
     uint64 public rebalanceFee;
     uint64 public interestRate;
 
 
-
-
-    address public uniswap;
     address payable[] public fptCoinList;
     address payable[] public stakePoolList;
     address payable[] public leveragePoolList;
+    constructor() public {
 
-    function createLeveragePool(address tokenA,address tokenB,uint256 leverageRatio,
+    } 
+    function initFactroryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
+        address _rebaseTokenImpl,address _fnxOracle,address _uniswap,address payable _feeAddress,
+             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _interestRate) public onlyOwner{
+                 baseCoinName = _baseCoinName;
+                 stakePoolImpl = _stakePoolImpl;
+                 leveragePoolImpl = _leveragePoolImpl;
+                 FPTCoinImpl = _FPTCoinImpl;
+                 rebaseTokenImpl = _rebaseTokenImpl;
+                 fnxOracle = _fnxOracle;
+                 uniswap = _uniswap;
+                 feeAddress = _feeAddress;
+                 buyFee = _buyFee;
+                 sellFee = _sellFee;
+                 rebalanceFee = _rebalanceFee;
+                 interestRate = _interestRate;
+             }
+    function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
         uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth)external 
         onlyOwner returns (address payable _leveragePool){
         bytes32 poolKey = getPairHash(tokenA,tokenB,leverageRatio);
         _leveragePool = leveragePoolMap[poolKey];
         if(_leveragePool == address(0)){
-            _leveragePool = createLeveragePool_sub(tokenA,tokenB,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth);
+            _leveragePool = createLeveragePool_sub(getStakePool(tokenA),getStakePool(tokenB),leverageRatio,leverageRebaseWorth,hedgeRebaseWorth);
             leveragePoolMap[poolKey] = _leveragePool;
             leveragePoolList.push(_leveragePool);
         }
     }
-    function createLeveragePool_sub(address tokenA,address tokenB,uint256 leverageRatio,
-        uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth)internal returns (address payable _leveragePool){
-        address _stakePoolA = getStakePool(tokenA);
-        address _stakePoolB = getStakePool(tokenB);
+    function createLeveragePool_sub(address _stakePoolA,address _stakePoolB,uint64 leverageRatio,
+        uint256 leverageRebaseWorth,uint256 hedgeRebaseWorth)internal returns (address payable _leveragePool){
         require(_stakePoolA!=address(0) && _stakePoolB!=address(0),"Stake pool is not created");
-        fnxProxy proxy = new fnxProxy(leveragePoolImpl,leveragePoolVersion);
-        ILeveragedPool newPool = ILeveragedPool(address(proxy));
-        newPool.setLeveragePoolInfo(rebaseTokenImpl,leveragePoolVersion,_stakePoolA,_stakePoolB,
-            fnxOracle,uniswap,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth,baseCoinName);
-        _leveragePool = address(uint160(address(proxy)));
+        ILeveragedPool newPool = ILeveragedPool(address(new fnxProxy(leveragePoolImpl,leveragePoolVersion)));
+        newPool.setLeveragePoolInfo(feeAddress,rebaseTokenImpl,leveragePoolVersion,_stakePoolA,_stakePoolB,
+            fnxOracle,uniswap,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
+            leverageRebaseWorth+(hedgeRebaseWorth<<128),baseCoinName);
+        _leveragePool = address(uint160(address(newPool)));
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
         view returns (address _stakePoolA,address _stakePoolB,address _leveragePool){
@@ -112,7 +130,8 @@ contract leveragedFactroy is Ownable{
     function createFptCoin(address token)internal returns(address){
         fnxProxy newCoin = new fnxProxy(FPTCoinImpl,FPTCoinVersion);
         fptCoinList.push(address(newCoin));
-        string memory tokenName = (token == address(0)) ? strConcat("FPT_","0") : strConcat("FPT_",IERC20(token).symbol());
+        string memory tokenName = (token == address(0)) ? string(abi.encodePacked("FPT_", baseCoinName)):
+                 string(abi.encodePacked("FPT_",IERC20(token).symbol()));
         IERC20(address(newCoin)).changeTokenName(tokenName,tokenName);
         return address(newCoin);
     }
@@ -157,14 +176,4 @@ contract leveragedFactroy is Ownable{
             ILeveragedPool(leveragePoolList[i]).setOracleAddress(_fnxOracle);
         }
     }
-    function strConcat(string memory _a, string memory _b) internal pure returns (string memory){
-        bytes memory _ba = bytes(_a);
-        bytes memory _bb = bytes(_b);
-        string memory ret = new string(_ba.length + _bb.length);
-        bytes memory bret = bytes(ret);
-        uint k = 0;
-        for (uint i = 0; i < _ba.length; i++)bret[k++] = _ba[i];
-        for (uint i = 0; i < _bb.length; i++) bret[k++] = _bb[i];
-        return string(ret);
-   }
 }

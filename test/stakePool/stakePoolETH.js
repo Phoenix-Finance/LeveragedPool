@@ -1,10 +1,10 @@
 const stakePool = artifacts.require("stakePool");
-const stakePoolProxy = artifacts.require("stakePoolProxy");
+const fnxProxy = artifacts.require("fnxProxy");
 const FPTCoin = artifacts.require("FPTCoin");
 let eth = "0x0000000000000000000000000000000000000000";
 contract('stakePool', function (accounts){
     it('stakePool normal tests', async function (){
-        let fptCoin = await FPTCoin.new("FPT_stake");
+        let fptCoin = await FPTCoin.new();
         let stakepool = await stakePool.new();
         await stakepool.setPoolInfo(fptCoin.address,eth,50);
         let addr = await stakepool.getFPTCoinAddress();
@@ -21,7 +21,7 @@ contract('stakePool', function (accounts){
         console.log("tokenNetworth : ",interest.toNumber());
     });
     it('stakePool stake tests', async function (){
-        let fptCoin = await FPTCoin.new("FPT_stake");
+        let fptCoin = await FPTCoin.new();
         await fptCoin.setTimeLimitation(0);
         let stakepool = await stakePool.new();
         fptCoin.setManager(stakepool.address);
@@ -55,7 +55,7 @@ contract('stakePool', function (accounts){
         console.log("tokenNetworth : ",interest.toString());
     });
     it('stakePool borrow tests', async function (){
-        let fptCoin = await FPTCoin.new("FPT_stake");
+        let fptCoin = await FPTCoin.new();
         await fptCoin.setTimeLimitation(0);
         let stakepool = await stakePool.new();
         fptCoin.setManager(stakepool.address);
@@ -98,10 +98,11 @@ contract('stakePool', function (accounts){
         console.log("tokenNetworth : ",interest.toString());
     });
     it('IStakePool borrow tests', async function (){
-        let fptCoin = await FPTCoin.new("FPT_stake");
+        let fptCoin = await FPTCoin.new();
         await fptCoin.setTimeLimitation(0);
         let stakeimple = await stakePool.new();
-        let stakepool = await stakePoolProxy.new(stakeimple.address);
+        let stakepool = await fnxProxy.new(stakeimple.address,1);
+        stakepool = await stakePool.at(stakepool.address);
         fptCoin.setManager(stakepool.address);
         await stakepool.setPoolInfo(fptCoin.address,eth,5e5);
         let addr = await stakepool.getFPTCoinAddress();
