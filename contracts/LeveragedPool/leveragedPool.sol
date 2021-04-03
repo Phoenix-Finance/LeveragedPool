@@ -14,22 +14,23 @@ contract leveragedPool is ImportOracle{
     uint256 constant internal feeDecimal = 1e8; 
     struct leverageInfo {
         uint8 id;
-        IStakePool leveragePool;
-        uint64 leverageRate;
-        uint128 rebalanceWorth;
-        uint128 defaultRebalanceWorth;
-        IRebaseToken leverageToken;
         address token;
+        IStakePool leveragePool;
+        uint256 leverageRate;
+        uint256 rebalanceWorth;
+        uint256 defaultRebalanceWorth;
+        IRebaseToken leverageToken;
+
     }
     leverageInfo internal leverageCoin;
     leverageInfo internal hedgeCoin;
     IUniswapV2Router02 internal IUniswap;
-    uint128 internal rebasePrice;
-    uint128 internal currentPrice;
-    uint64 internal buyFee;
-    uint64 internal sellFee;
-    uint64 internal rebalanceFee;
-    uint64 internal defaultLeverageRatio;
+    uint256 internal rebasePrice;
+    uint256 internal currentPrice;
+    uint256 internal buyFee;
+    uint256 internal sellFee;
+    uint256 internal rebalanceFee;
+    uint256 internal defaultLeverageRatio;
     address payable internal feeAddress;
 
     event DebugEvent(address indexed from,uint256 value1,uint256 value2);
@@ -49,18 +50,18 @@ contract leveragedPool is ImportOracle{
     function leverageTokens() public view returns (address,address){
         return (address(leverageCoin.leverageToken),address(hedgeCoin.leverageToken));
     }
-    function setLeverageFee(uint64 _buyFee,uint64 _sellFee,uint64 _rebalanceFee) onlyOwner public{
+    function setLeverageFee(uint256 _buyFee,uint256 _sellFee,uint256 _rebalanceFee) onlyOwner public{
         buyFee = _buyFee;
         sellFee = _sellFee;
         rebalanceFee = _rebalanceFee;
     }
-    function getLeverageFee()public view returns(uint64,uint64,uint64){
+    function getLeverageFee()public view returns(uint256,uint256,uint256){
         return (buyFee,sellFee,rebalanceFee);
     }
     function setLeveragePoolInfo(address payable _feeAddress,address rebaseImplement,uint256 rebaseVersion,address leveragePool,address hedgePool,address oracle,address swapRouter,
         uint256 fees,uint256 rebaseWorth,string memory baseCoinName) public onlyOwner {
         feeAddress = _feeAddress;
-        uint64 lRate = uint64(fees>>192);
+        uint256 lRate = uint64(fees>>192);
         defaultLeverageRatio = lRate;
         _oracle = IFNXOracle(oracle);
         leverageCoin.id = 0;
@@ -94,25 +95,20 @@ contract leveragedPool is ImportOracle{
         rebalanceFee = uint64(fees>>128);
         string memory token0 = (leverageCoin.token == address(0)) ? baseCoinName : IERC20(leverageCoin.token).symbol();
         string memory token1 = (hedgeCoin.token == address(0)) ? baseCoinName : IERC20(hedgeCoin.token).symbol();
-        string memory leverage = leverageRatio2str(lRate);
+        string memory suffix = leverageSuffix(lRate);
 
-        string memory leverageName = string(abi.encodePacked("LFT_",token0,"_",token1,leverage));
-        string memory hedgeName = string(abi.encodePacked("HFT_",token1,"_",token0,leverage));
+        string memory leverageName = string(abi.encodePacked("LPT_",token0,uint8(95),token1,suffix));
+        string memory hedgeName = string(abi.encodePacked("HPT_",token1,uint8(95),token0,suffix));
 
         leverageCoin.leverageToken.changeTokenName(leverageName,leverageName);
         hedgeCoin.leverageToken.changeTokenName(hedgeName,hedgeName);
         IUniswap = IUniswapV2Router02(swapRouter);
-        uint256[] memory assets = new uint256[](2);
-        assets[0] = uint256(leverageCoin.token);
-        assets[1] = uint256(hedgeCoin.token);
-        uint256[]memory prices = oraclegetPrices(assets);
-        emit DebugEvent(msg.sender,prices[0],prices[1]);
-        rebasePrice = uint128(prices[1]*calDecimal/prices[0]);
+        rebasePrice = _getUnderlyingPriceView(0);
     }
-    function getDefaultLeverageRate()public view returns (uint64){
+    function getDefaultLeverageRate()public view returns (uint256){
         return defaultLeverageRatio;
     }
-    function leverageRates()public view returns (uint64,uint64){
+    function leverageRates()public view returns (uint256,uint256){
         return (leverageCoin.leverageRate,hedgeCoin.leverageRate);
     }
     function UnderlyingPrice(uint8 id) internal view returns (uint256){
@@ -209,7 +205,7 @@ contract leveragedPool is ImportOracle{
         userLoan = userLoan.mul(coinInfo.leverageRate-feeDecimal)/feeDecimal;
         emit DebugEvent(address(0),amount, userLoan);
         userLoan = coinInfo.leveragePool.borrow(userLoan);
-        amount = swapBuy(coinInfo.id,userLoan,0,true);
+        amount = swap(true,coinInfo.id,userLoan,0,true);
         emit DebugEvent(address(0),amount, userLoan);
         coinInfo.leverageToken.mint(msg.sender,leverageAmount);
         if(fee>0){
@@ -228,7 +224,7 @@ contract leveragedPool is ImportOracle{
         userLoan = userLoan.mul(coinInfo.leverageRate-feeDecimal)/feeDecimal;
         emit DebugEvent(address(0),amount, userLoan);
         userLoan = coinInfo.leveragePool.borrow(userLoan);
-        amount = swapBuy(coinInfo.id,userLoan.add(amount),0,true);
+        amount = swap(true,coinInfo.id,userLoan.add(amount),0,true);
         emit DebugEvent(address(0),amount, userLoan);
         coinInfo.leverageToken.mint(msg.sender,leverageAmount);
         if(fee>0){
@@ -240,7 +236,7 @@ contract leveragedPool is ImportOracle{
         uint256 userLoan = amount.mul(coinInfo.rebalanceWorth)/calDecimal;
         userLoan = userLoan.mul(coinInfo.leverageRate-feeDecimal);
         uint256 userPayback =  amount.mul(_tokenNetworth(coinInfo));
-        uint256 allSell = swapSell(coinInfo.id,userLoan.add(userPayback)/UnderlyingPrice(coinInfo.id),0,true);
+        uint256 allSell = swap(false,coinInfo.id,userLoan.add(userPayback)/UnderlyingPrice(coinInfo.id),0,true);
         userLoan = userLoan/feeDecimal;
         emit DebugEvent(address(111), allSell, userLoan);
         (uint256 repay,uint256 fee) = getFees(sellFee,allSell.sub(userLoan));
@@ -267,7 +263,7 @@ contract leveragedPool is ImportOracle{
             uint256 newSupply = totalWorth/coinInfo.rebalanceWorth;
             coinInfo.leverageToken.calRebaseRatio(newSupply);
         }else{
-            coinInfo.rebalanceWorth = uint128(totalWorth/tokenNum);
+            coinInfo.rebalanceWorth = totalWorth/tokenNum;
         }
         totalWorth = totalWorth/calDecimal;
         uint256 allLoan = totalWorth.mul(coinInfo.leverageRate-feeDecimal)/feeDecimal;
@@ -277,7 +273,7 @@ contract leveragedPool is ImportOracle{
             coinInfo.leverageRate = defaultLeverageRatio;
         }else{
             allLoan = poolBalance;
-            coinInfo.leverageRate = uint64(poolBalance.mul(feeDecimal)/totalWorth + feeDecimal);
+            coinInfo.leverageRate = poolBalance.mul(feeDecimal)/totalWorth + feeDecimal;
         } 
 
         uint256 loadInterest = allLoan.mul(insterest)/1e8;
@@ -293,19 +289,23 @@ contract leveragedPool is ImportOracle{
     function rebalance(bool bRebalanceWorth) getUnderlyingPrice public {
         (uint256 buyLev,uint256 sellLev) = _settle(leverageCoin,bRebalanceWorth);
         (uint256 buyHe,uint256 sellHe) = _settle(hedgeCoin,bRebalanceWorth);
-        rebasePrice = uint128(UnderlyingPrice(0));
+        rebasePrice = uint256(UnderlyingPrice(0));
         uint256 _curPrice = rebasePrice;
         emit DebugEvent(address(1), buyHe, sellHe);
         emit DebugEvent(address(12), _curPrice, sellHe.mul(_curPrice)/calDecimal);
-        if (buyLev>0 && buyHe>0){
+        if (buyLev>0){
             leverageCoin.leveragePool.borrowAndInterest(buyLev);
+        }
+        if(buyHe>0){
             hedgeCoin.leveragePool.borrowAndInterest(buyHe);
+        }
+        if (buyLev>0 && buyHe>0){
             buyHe = _curPrice.mul(buyHe);
             buyLev = buyLev.mul(calDecimal);
             if(buyLev>buyHe){
-                swapBuy(0,(buyLev - buyHe)/calDecimal,(buyLev - buyHe)/_curPrice/2,true);
+                swap(true,0,(buyLev - buyHe)/calDecimal,(buyLev - buyHe)/_curPrice/2,true);
             }else{
-                swapSell(0,(buyHe - buyLev)/_curPrice,(buyHe - buyLev)/calDecimal/2,true);
+                swap(false,0,(buyHe - buyLev)/_curPrice,(buyHe - buyLev)/calDecimal/2,true);
             }
         }else if(sellLev>0 && sellHe>0){
             uint256 sellHe1 = _curPrice.mul(sellHe);
@@ -314,26 +314,24 @@ contract leveragedPool is ImportOracle{
                 sellLev1 = (sellLev1-sellHe1);
                 sellHe1 = sellLev1/calDecimal;
                 sellLev1 = sellLev1.add(sellLev1/10)/_curPrice;
-                swapSell(0,sellLev1,sellHe1,false);
+                swap(false,0,sellLev1,sellHe1,false);
             }else{
                 sellLev1 = (sellHe1-sellLev1);
                 sellHe1 = sellLev1.add(sellLev1)/calDecimal;
                 sellLev1 =  sellLev1/_curPrice;
-                swapBuy(0,sellHe1,sellLev1,false);
+                swap(true,0,sellHe1,sellLev1,false);
             }
         }else{
             if (buyLev>0){
-                leverageCoin.leveragePool.borrowAndInterest(buyLev);
-                swapBuy(0,buyLev,buyLev.mul(_curPrice)/_curPrice/2,true);
+                swap(true,0,buyLev,buyLev.mul(_curPrice)/_curPrice/2,true);
             }else if (sellLev>0){
-                swapSell(0,sellLev.add(sellLev/10).mul(calDecimal)/_curPrice,sellLev,false);
+                swap(false,0,sellLev.add(sellLev/10).mul(calDecimal)/_curPrice,sellLev,false);
             }
             if(buyHe>0){
-                hedgeCoin.leveragePool.borrowAndInterest(buyHe);
-                swapSell(0,buyHe,buyHe.mul(_curPrice)/calDecimal/2,true);
+                swap(false,0,buyHe,buyHe.mul(_curPrice)/calDecimal/2,true);
             }else if(sellHe>0){
                 emit DebugEvent(address(13), sellHe.add(sellHe/10).mul(_curPrice)/calDecimal, sellHe);
-                swapBuy(0,sellHe.add(sellHe/10).mul(_curPrice)/calDecimal,sellHe,false);
+                swap(true,0,sellHe.add(sellHe/10).mul(_curPrice)/calDecimal,sellHe,false);
             }
         }
         emit DebugEvent(address(14), underlyingBalance(1), underlyingBalance(0));
@@ -363,13 +361,9 @@ contract leveragedPool is ImportOracle{
         return(amount.sub(fee),fee);
     }
 
-    function swapBuy(uint8 id,uint256 amount0,uint256 amount1,bool firstExact)internal returns (uint256) {
-        return id == 0 ? _swap(leverageCoin.token,hedgeCoin.token,amount0,amount1,firstExact) : 
+    function swap(bool buy,uint8 id,uint256 amount0,uint256 amount1,bool firstExact)internal returns (uint256) {
+        return (id == 0) == buy ? _swap(leverageCoin.token,hedgeCoin.token,amount0,amount1,firstExact) : 
             _swap(hedgeCoin.token,leverageCoin.token,amount0,amount1,firstExact);
-    }
-    function swapSell(uint8 id,uint256 amount0,uint256 amount1,bool firstExact) internal returns (uint256) {
-        return id == 1 ? _swap(leverageCoin.token,hedgeCoin.token,amount0,amount1,firstExact) :
-             _swap(hedgeCoin.token,leverageCoin.token,amount0,amount1,firstExact);
     }
     function _swap(address token0,address token1,uint256 amount0,uint256 amount1,bool firstExact) internal returns (uint256) {
         address[] memory path = new address[](2);
@@ -432,44 +426,33 @@ contract leveragedPool is ImportOracle{
         return id == 0 ? prices[1]*calDecimal/prices[0] : prices[0]*calDecimal/prices[1];
     }
     modifier getUnderlyingPrice(){
-        uint256[] memory assets = new uint256[](2);
-        assets[0] = uint256(leverageCoin.token);
-        assets[1] = uint256(hedgeCoin.token);
-        uint256[]memory prices = oraclegetPrices(assets);
-        currentPrice = uint128(prices[1]*calDecimal/prices[0]);
+        currentPrice = _getUnderlyingPriceView(0);
         _;
     }
-    function leverageRatio2str(uint256 leverageRatio) internal pure returns (string memory){
+    function leverageSuffix(uint256 leverageRatio) internal pure returns (string memory){
         if (leverageRatio == 0) return "0";
-        bytes memory bstr = new bytes(6);
-        uint j = leverageRatio*100/feeDecimal;
-        uint k = 5;
-        if (j%10 > 0){
-            bstr[k--]= bytes1(uint8(48 + j%10));
+        uint256 integer = leverageRatio*10/feeDecimal;
+        uint8 fraction = uint8(integer%10+48);
+        integer = integer/10;
+        uint8 ten = uint8(integer/10+48);
+        uint8 unit = uint8(integer%10+48);
+        bytes memory suffix = new bytes(7);
+        suffix[0] = bytes1(uint8(95));
+        suffix[1] = bytes1(uint8(88));
+        uint len = 2;
+        if(ten>48){
+                suffix[len++] = bytes1(ten);
+            }
+        suffix[len++] = bytes1(unit);
+        if (fraction>48){
+            suffix[len++] = bytes1(uint8(46));
+            suffix[len++] = bytes1(fraction);
         }
-        j /= 10;
-        if (j%10 > 0){
-            bstr[k--]= bytes1(uint8(48 + j%10));
+        bytes memory newSuffix = new bytes(len);
+        for(uint i=0;i<len;i++){
+            newSuffix[i] = suffix[i];
         }
-        if (k<5){
-            bstr[k--]= bytes1(uint8(46));
-        }
-        j /= 10;
-        bstr[k--]= bytes1(uint8(48 + j%10));
-        if (j>0){
-            j /= 10;
-            bstr[k--]= bytes1(uint8(48 + j%10));
-        }
-        if (k==0){
-            bstr[0] = bytes1(uint8(88));
-            return string(bstr);
-        }else{
-            bytes memory newstr = new bytes(5-k);
-            k++;
-            for (uint i = 0; i < newstr.length; i++) newstr[i] = bstr[k++];
-            newstr[0] = bytes1(uint8(88));
-            return string(newstr);
-        }
+        return string(newSuffix);
     }
-    
+
 }

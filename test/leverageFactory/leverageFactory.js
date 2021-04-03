@@ -59,9 +59,9 @@ contract('leveragedPool', function (accounts){
         fpt1 = await FPTCoin.at(fpt1);
         console.log(fpt1.address,await fpt1.name(),await fpt1.symbol());
 
-        await lFactory.createLeveragePool(fnxCoin.address,eth,25e7,"100000000000000000000","100000000000000000");
+        await lFactory.createLeveragePool(fnxCoin.address,eth,22e7,"100000000000000000000","100000000000000000");
 
-        spoolAddress = await lFactory.getLeveragePool(fnxCoin.address,eth,25e7);
+        spoolAddress = await lFactory.getLeveragePool(fnxCoin.address,eth,22e7);
         console.log(spoolAddress);
         spool = await leveragedPool.at(spoolAddress[2]);
         address = await spool.leverageTokens();
