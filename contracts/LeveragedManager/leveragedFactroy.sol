@@ -5,6 +5,7 @@ pragma solidity =0.5.16;
  * Copyright (C) 2020 FinNexus Options Protocol
  */
 import "../modules/SafeMath.sol";
+import "../modules/Managerable.sol";
 import "../modules/Ownable.sol";
 import "../proxy/fnxProxy.sol";
 import "../leveragedPool/ILeveragedPool.sol";
@@ -104,23 +105,24 @@ contract leveragedFactroy is Ownable{
     function getAllLeveragePool()external view returns (address payable[] memory){
         return leveragePoolList;
     }
-    function rebalanceAll(bool bRebalanceWorth)external onlyOwner {
+    function rebalanceAll()external onlyOwner {
         uint256 len = leveragePoolList.length;
         for(uint256 i=0;i<len;i++){
-            ILeveragedPool(leveragePoolList[i]).rebalance(bRebalanceWorth);
+            ILeveragedPool(leveragePoolList[i]).rebalance();
         }
     }
     function getPairHash(address tokenA,address tokenB,uint256 leverageRatio) internal pure returns (bytes32) {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         return keccak256(abi.encodePacked(token0, token1,leverageRatio));
     }
-    function createStatePool(address token,uint64 interestrate)public returns(address payable){
+    function createStatePool(address token,uint64 _interestrate)public returns(address payable){
         address payable stakePool = stakePoolMap[token];
         if(stakePool == address(0)){
             address fptCoin = createFptCoin(token);
             fnxProxy newPool = new fnxProxy(stakePoolImpl,stakePoolVersion);
             stakePool = address(newPool);
-            IStakePool(stakePool).setPoolInfo(fptCoin,token,interestrate);
+            IStakePool(stakePool).setPoolInfo(fptCoin,token,_interestrate);
+            Managerable(fptCoin).setManager(stakePool);
             stakePoolMap[token] = stakePool;
             stakePoolList.push(stakePool);
             

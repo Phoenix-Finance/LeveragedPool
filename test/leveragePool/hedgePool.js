@@ -8,6 +8,7 @@ const IERC20 = artifacts.require("IERC20");
 const FNXOracle = artifacts.require("FNXOracle");
 const IUniswapV2Router02 = artifacts.require("IUniswapV2Router02");
 const IUniswapV2Factory = artifacts.require("IUniswapV2Factory");
+const leveragedFactroy = artifacts.require("leveragedFactroy");
 let eth = "0x0000000000000000000000000000000000000000";
 contract('leveragedPool', function (accounts){
     let fnx;
@@ -33,14 +34,23 @@ contract('leveragedPool', function (accounts){
         await oracle.setOperator(0,accounts[0]);
         await oracle.setPrice(fnx.address,1e8);
         await oracle.setPrice(eth,1e11);
-        let stakeimple = await stakePool.new();
-        let stakepoolA = await stakePoolProxy.new(stakeimple.address,fnx.address,fptCoin.address,"FPT_stakeA",5e5);
-        let stakepoolB = await stakePoolProxy.new(stakeimple.address,eth,fptCoin.address,"FPT_stakeB",5e5);
-        let lToken = await leveragedPool.new();
 
-        await lToken.setLeveragePoolInfo(rTokenImply.address,stakepoolA.address,stakepoolB.address,oracle.address,univ2,
-            "3000000000000000000","100000000000000000000","100000000000000000");
-        await lToken.setFeeAddress(accounts[1]);
+        let stakeimple = await stakePool.new();
+        let lToken = await leveragedPool.new();
+        let lFactory = await leveragedFactroy.new();
+        await lFactory.initFactroryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
+        univ2,accounts[1],1e5,1e5,1e5,1e5);
+        await lFactory.createStatePool(fnx.address,1e5);
+        await lFactory.createStatePool(eth,1e5);
+        let spoolAddress = await lFactory.getStakePool(fnx.address);
+        let stakepoolA = await stakePool.at(spoolAddress);
+        spoolAddress = await lFactory.getStakePool(eth);
+        let stakepoolB = await stakePool.at(spoolAddress);
+
+        await lFactory.createLeveragePool(fnx.address,eth,3e8,"100000000000000000000","100000000000000000");
+        spoolAddress = await lFactory.getLeveragePool(fnx.address,eth,3e8);
+        lToken = await leveragedPool.at(spoolAddress[2]);
+
         let tokens = await lToken.leverageTokens();
         console.log("tokens : ",tokens);
         let pair = await uniFactory.getPair(weth.address,fnx.address);
@@ -62,24 +72,15 @@ contract('leveragedPool', function (accounts){
 */
         let result = await lToken.getLeverageFee();
         console.log("Leverage fee : ",result[0].toString(),result[1].toString(),result[2].toString());
-        result = await lToken.getHedgeFee();
-        console.log("hedge fee : ",result[0].toString(),result[1].toString(),result[2].toString());
-        await lToken.setLeverageFee("2000000000000000","3000000000000000","4000000000000000");
-        await lToken.setHedgeFee("4000000000000000","3000000000000000","2000000000000000");
-        result = await lToken.getLeverageFee();
-        console.log("Leverage fee : ",result[0].toString(),result[1].toString(),result[2].toString());
-        result = await lToken.getHedgeFee();
-        console.log("hedge fee : ",result[0].toString(),result[1].toString(),result[2].toString());
-        let netWroth0 = await lToken.getLeverageTokenNetworth();
-        let netWroth1 = await lToken.getHedgeTokenNetworth();
-        console.log("net worth : ",netWroth0.toString(),netWroth1.toString());
+        let netWroth = await lToken.getTokenNetworths();
+        console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
+
         await stakepoolB.stake("1000000000000000000000",{from : accounts[8],value : "1000000000000000000000"});
         let account = accounts[1];
-        await lToken.buyHedge("1000000000000000000",{from : account,value : "1000000000000000000"});
+        await lToken.buyHedge("1000000000000000000","1000000000000000000","0x",{from : account,value : "1000000000000000000"});
 
-        netWroth0 = await lToken.getLeverageTokenNetworth();
-        netWroth1 = await lToken.getHedgeTokenNetworth();
-        console.log("net worth : ",netWroth0.toString(),netWroth1.toString());
+        netWroth = await lToken.getTokenNetworths();
+        console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
 
         ethBalance = await weth.balanceOf(pair);
         console.log("WETH Balance : ",ethBalance.toString());
@@ -88,7 +89,7 @@ contract('leveragedPool', function (accounts){
         fnxBalance = await fnx.balanceOf(pair);
         console.log("FNX Balance : ",fnxBalance.toString());
         
-        await lToken.buyHedge("1000000000000000000",{from : account,value : "1000000000000000000"});
+        await lToken.buyHedge("1000000000000000000","1000000000000000000","0x",{from : account,value : "1000000000000000000"});
         ethBalance = await weth.balanceOf(pair);
         console.log("WETH Balance : ",ethBalance.toString());
         ethBalance = await web3.eth.getBalance(weth.address);
@@ -96,7 +97,7 @@ contract('leveragedPool', function (accounts){
         ethBalance = await web3.eth.getBalance(lToken.address);
         console.log("ETH Balance1 : ",ethBalance.toString());
         fnxBalance = await fnx.balanceOf(lToken.address);
-        console.log("FNX Balance : ",fnxBalance.toString());
+        console.log("FNX Balance1 : ",fnxBalance.toString());
         fnxBalance = await fnx.balanceOf(stakepoolA.address);
         console.log("FNX Balance : ",fnxBalance.toString());
         
@@ -105,9 +106,8 @@ contract('leveragedPool', function (accounts){
         console.log("rebase Balance : ",fnxBalance.toString());
         await lToken.rebalance();
 
-        netWroth0 = await lToken.getLeverageTokenNetworth();
-        netWroth1 = await lToken.getHedgeTokenNetworth();
-        console.log("net worth : ",netWroth0.toString(),netWroth1.toString());
+        netWroth = await lToken.getTokenNetworths();
+        console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         ethBalance = await weth.balanceOf(pair);
         console.log("WETH Balance : ",ethBalance.toString());
         ethBalance = await web3.eth.getBalance(weth.address);
@@ -122,8 +122,8 @@ contract('leveragedPool', function (accounts){
         fnxBalance = await rebaseToken1.balanceOf(account);
         console.log("rebase Balance : ",fnxBalance.toString());
         await rebaseToken1.approve(lToken.address,fnxBalance);
-        await lToken.sellHedge(fnxBalance,{from : account});
-
+        await lToken.sellHedge(fnxBalance,"1000000000000000000","0x",{from : account});
+        return
         ethBalance = await weth.balanceOf(pair);
         console.log("WETH Balance : ",ethBalance.toString());
         ethBalance = await web3.eth.getBalance(weth.address);
@@ -135,8 +135,7 @@ contract('leveragedPool', function (accounts){
         fnxBalance = await fnx.balanceOf(stakepoolA.address);
         console.log("FNX Balance : ",fnxBalance.toString());
 
-        netWroth0 = await lToken.getLeverageTokenNetworth();
-        netWroth1 = await lToken.getHedgeTokenNetworth();
-        console.log("net worth : ",netWroth0.toString(),netWroth1.toString());
+        netWroth = await lToken.getTokenNetworths();
+        console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
     });
 });

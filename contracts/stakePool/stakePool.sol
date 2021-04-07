@@ -38,20 +38,23 @@ contract stakePool is ImportIFPTCoin{
             return IERC20(_poolToken).balanceOf(address(this));
         }
     }
+    function loan(address account) public view returns(uint256){
+        return loanAccountMap[account];
+    }
     function borrow(uint256 amount) public returns(uint256) {
         loanAccountMap[msg.sender] = loanAccountMap[msg.sender].add(amount);
-        uint256 loan = amount.mul((calDecimal-_interestRate))/calDecimal;
-        _totalSupply = _totalSupply.add(amount-loan);
-        _redeem(msg.sender,_poolToken,loan);
-        return loan;
+        uint256 _loan = amount.mul((calDecimal-_interestRate))/calDecimal;
+        _totalSupply = _totalSupply.add(amount-_loan);
+        _redeem(msg.sender,_poolToken,_loan);
+        return _loan;
     }
     function borrowAndInterest(uint256 amount) public returns(uint256){
         loanAccountMap[msg.sender] = loanAccountMap[msg.sender].add(amount);
-        uint256 loan = amount.sub(loanAccountMap[msg.sender].mul(_interestRate)/calDecimal);
-        _totalSupply = _totalSupply.add(amount-loan);
+        uint256 _loan = amount.sub(loanAccountMap[msg.sender].mul(_interestRate)/calDecimal);
+        _totalSupply = _totalSupply.add(amount-_loan);
 
-        _redeem(msg.sender,_poolToken,loan);
-        return loan;
+        _redeem(msg.sender,_poolToken,_loan);
+        return _loan;
     }
     function repay(uint256 amount) public payable {
         amount = getPayableAmount(_poolToken,amount);

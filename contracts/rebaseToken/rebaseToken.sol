@@ -41,7 +41,7 @@ contract rebaseToken is rebaseTokenData {
         name = _name;
         symbol = _symbol;
     }
-    function calRebaseRatio(uint256 newTotalSupply) public {
+    function calRebalanceRatio(uint256 newTotalSupply) public {
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];
         if (info._totalSupply > 0){
             info.rebaseRatio = newTotalSupply.mul(rebaseDecimal)/info._totalSupply;

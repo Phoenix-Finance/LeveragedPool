@@ -1,6 +1,7 @@
 pragma solidity =0.5.16;
 interface IStakePool {
     function poolToken()external view returns (address);
+    function loan(address account) external view returns(uint256);
     function FPTCoin()external view returns (address);
     function interestRate()external view returns (uint64);
     function poolBalance() external view returns (uint256);
