@@ -38,7 +38,7 @@ contract('leveragedPool', function (accounts){
 
         let lFactory = await leveragedFactroy.new();
         await lFactory.initFactroryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
-            univ2,accounts[1],1e5,1e5,1e5,1e5);
+            univ2,accounts[1],1e5,1e5,1e5,5e6,1e5);
             await lFactory.createStatePool(fnx.address,1e5);
             await lFactory.createStatePool(eth,1e5);
         let spoolAddress = await lFactory.getStakePool(fnx.address);

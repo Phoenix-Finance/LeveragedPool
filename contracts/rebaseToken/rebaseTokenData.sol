@@ -1,8 +1,10 @@
 pragma solidity =0.5.16;
 import "../modules/Ownable.sol";
+import "../ERC20/safeErc20.sol";
 contract rebaseTokenData is Ownable{
     string public name;
     string public symbol;
+    IERC20 public leftToken;
     uint8 public decimals = 18;
     uint256 constant rebaseDecimal = 1e18;
     mapping (address => mapping (address => uint256)) internal _allowances;    
@@ -10,6 +12,7 @@ contract rebaseTokenData is Ownable{
         mapping (address => uint256) balances;
         uint256 _totalSupply;
         uint256 rebaseRatio;
+        uint256 leftAmount;
     }
     Erc20Info[] internal Erc20InfoList;
     /**

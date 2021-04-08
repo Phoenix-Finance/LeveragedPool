@@ -45,6 +45,7 @@ contract leveragedFactroy is Ownable{
     uint64 public sellFee;
     uint64 public rebalanceFee;
     uint64 public interestRate;
+    uint64 public liquidateThreshold;
 
 
     address payable[] public fptCoinList;
@@ -55,19 +56,20 @@ contract leveragedFactroy is Ownable{
     } 
     function initFactroryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _uniswap,address payable _feeAddress,
-             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _interestRate) public onlyOwner{
-                 baseCoinName = _baseCoinName;
-                 stakePoolImpl = _stakePoolImpl;
-                 leveragePoolImpl = _leveragePoolImpl;
-                 FPTCoinImpl = _FPTCoinImpl;
-                 rebaseTokenImpl = _rebaseTokenImpl;
-                 fnxOracle = _fnxOracle;
-                 uniswap = _uniswap;
-                 feeAddress = _feeAddress;
-                 buyFee = _buyFee;
-                 sellFee = _sellFee;
-                 rebalanceFee = _rebalanceFee;
-                 interestRate = _interestRate;
+             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _liquidateThreshold,uint64 _interestRate) public onlyOwner{
+                baseCoinName = _baseCoinName;
+                stakePoolImpl = _stakePoolImpl;
+                leveragePoolImpl = _leveragePoolImpl;
+                FPTCoinImpl = _FPTCoinImpl;
+                rebaseTokenImpl = _rebaseTokenImpl;
+                fnxOracle = _fnxOracle;
+                uniswap = _uniswap;
+                feeAddress = _feeAddress;
+                buyFee = _buyFee;
+                sellFee = _sellFee;
+                rebalanceFee = _rebalanceFee;
+                liquidateThreshold = _liquidateThreshold;
+                interestRate = _interestRate;
              }
     function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
         uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth)external 
@@ -86,7 +88,7 @@ contract leveragedFactroy is Ownable{
         ILeveragedPool newPool = ILeveragedPool(address(new fnxProxy(leveragePoolImpl,leveragePoolVersion)));
         newPool.setLeveragePoolInfo(feeAddress,rebaseTokenImpl,leveragePoolVersion,_stakePoolA,_stakePoolB,
             fnxOracle,uniswap,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
-            leverageRebaseWorth+(hedgeRebaseWorth<<128),baseCoinName);
+            liquidateThreshold,leverageRebaseWorth+(hedgeRebaseWorth<<128),baseCoinName);
         _leveragePool = address(uint160(address(newPool)));
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 

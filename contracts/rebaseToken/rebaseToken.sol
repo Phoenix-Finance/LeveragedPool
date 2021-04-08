@@ -12,11 +12,12 @@ contract rebaseToken is rebaseTokenData {
     function initialize() public{
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
-        Erc20InfoList.push(Erc20Info(0,rebaseDecimal));
+        Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
         decimals = 18;
     }
-    function newErc20() external onlyOwner{
-        Erc20InfoList.push(Erc20Info(0,rebaseDecimal));
+    function newErc20(uint256 leftAmount) external onlyOwner{
+        Erc20InfoList[Erc20InfoList.length-1].leftAmount = leftAmount;
+        Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
     }
     function getErc20Info() internal view returns(Erc20Info memory){
         return Erc20InfoList[Erc20InfoList.length-1];
@@ -33,13 +34,14 @@ contract rebaseToken is rebaseTokenData {
      * @param _symbol token symbol
      *
      */
-    function changeTokenName(string memory _name, string memory _symbol)
+    function changeTokenName(string memory _name, string memory _symbol,address token)
         public
         onlyOwner
     {
         //check parameter in ico minter contract
         name = _name;
         symbol = _symbol;
+        leftToken = IERC20(token);
     }
     function calRebalanceRatio(uint256 newTotalSupply) public {
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];

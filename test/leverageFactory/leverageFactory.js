@@ -38,7 +38,7 @@ contract('leveragedPool', function (accounts){
 
         let lFactory = await leveragedFactroy.new();
         await lFactory.initFactroryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
-            univ2,accounts[1],1e5,1e5,1e5,1e5);
+            univ2,accounts[1],1e5,1e5,1e5,5e6,1e5);
         let fnxCoin = await FPTCoin.new();
         fnxCoin.changeTokenName("Finnexus coin","FNX");
         await oracle.setPrice(fnxCoin.address,1e8);
