@@ -12,17 +12,7 @@ contract FPTCoin is SharedCoin {
     using SafeMath for uint256;
     mapping (address => bool) internal timeLimitWhiteList;
     constructor ()public{
-        initialize();
     }
-    /**
-     * @dev constructor function. set FNX minePool contract address. 
-     */ 
-    function initialize() public{
-        SharedCoin.initialize();
-    }
-    function update() onlyOwner public{
-    }
-
     /**
      * @dev Retrieve user's start time for burning. 
      * @param user user's account.

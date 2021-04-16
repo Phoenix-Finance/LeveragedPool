@@ -1,9 +1,9 @@
 pragma solidity =0.5.16;
 import "../modules/Managerable.sol";
-//import "../FNXMinePool/IFNXMinePool.sol";
+import "../modules/versionUpdater.sol";
 import "../ERC20/Erc20Data.sol";
 import "../modules/timeLimitation.sol";
-contract FPTData is Erc20Data,Managerable,timeLimitation{
+contract FPTData is Erc20Data,Managerable,timeLimitation,versionUpdater{
     /**
     * @dev lock mechanism is used when user redeem collateral and left collateral is insufficient.
     * _totalLockedWorth stores total locked worth, priced in USD.

@@ -23,6 +23,7 @@ contract initializable {
     */
     bool private initializing;
 
+    mapping(uint256 => bool) private versionUpdated;
     /**
     * @dev Modifier to use in the initializer function of a contract.
     */
@@ -34,7 +35,6 @@ contract initializable {
         initialized = true;
 
         _;
-
         initializing = wasInitializing;
     }
 
@@ -48,5 +48,10 @@ contract initializable {
         uint256 cs;
         assembly { cs := extcodesize(address) }
         return cs == 0;
+    }
+    modifier versionUpdate(uint256 _version){
+        require(!versionUpdated[_version],"New version implementation is already updated!");
+        versionUpdated[_version] = true;
+        _;
     }
 }

@@ -1,7 +1,13 @@
 pragma solidity =0.5.16;
 import "../modules/Ownable.sol";
 import "../ERC20/safeErc20.sol";
-contract rebaseTokenData is Ownable{
+import "../modules/versionUpdater.sol";
+import "../modules/AddressPermission.sol";
+contract rebaseTokenData is Ownable,versionUpdater,AddressPermission{
+    uint256 constant allowRebalance = 1;
+    uint256 constant allowNewErc20 = 1<<1;
+    uint256 constant allowMint = 1<<2;
+    uint256 constant allowBurn = 1<<3;
     string public name;
     string public symbol;
     IERC20 public leftToken;

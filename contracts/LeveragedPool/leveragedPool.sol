@@ -1,50 +1,19 @@
 pragma solidity =0.5.16;
 import "../proxy/fnxProxy.sol";
-import "../rebaseToken/IRebaseToken.sol";
-import "../uniswap/IUniswapV2Router02.sol";
-import "../stakePool/IStakePool.sol";
-import "../interface/IFNXOracle.sol";
+
+
 import "../ERC20/safeErc20.sol";
 import "../modules/SafeMath.sol";
+import "./leveragedData.sol";
 
-contract leveragedPool is ImportOracle{
+contract leveragedPool is leveragedData{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    uint256 constant internal calDecimal = 1e18; 
-    uint256 constant internal feeDecimal = 1e8; 
-    struct leverageInfo {
-        uint8 id;
-        bool bRebase;
-        address token;
-        IStakePool stakePool;
-        uint256 leverageRate;
-        uint256 rebalanceWorth;
-        uint256 defaultRebalanceWorth;
-        IRebaseToken leverageToken;
-
-    }
-    leverageInfo internal leverageCoin;
-    leverageInfo internal hedgeCoin;
-    IUniswapV2Router02 internal IUniswap;
-    uint256 internal rebasePrice;
-    uint256 internal currentPrice;
-    uint256 internal buyFee;
-    uint256 internal sellFee;
-    uint256 internal rebalanceFee;
-    uint256 internal defaultLeverageRatio;
-    uint256 internal liquidateThreshold;
-    address payable internal feeAddress;
-
-    event DebugEvent(address indexed from,uint256 value1,uint256 value2);
     constructor() public {
 
     }
     function() external payable {
         
-    }
-    function initialize() public {
-        _owner = msg.sender;
-        emit OwnershipTransferred(address(0), _owner);
     }
     function setFeeAddress(address payable addrFee) onlyOwner public {
         feeAddress = addrFee;
@@ -73,6 +42,7 @@ contract leveragedPool is ImportOracle{
         leverageCoin.defaultRebalanceWorth = uint128(rebaseWorth);
         fnxProxy newToken = new fnxProxy(rebaseImplement,rebaseVersion);
         leverageCoin.leverageToken = IRebaseToken(address(newToken));
+        leverageCoin.leverageToken.modifyPermission(address(this),0xFFFFFFFFFFFFFFFF);
         leverageCoin.token = leverageCoin.stakePool.poolToken();
         if(leverageCoin.token != address(0)){
             IERC20 oToken = IERC20(leverageCoin.token);
@@ -86,6 +56,7 @@ contract leveragedPool is ImportOracle{
         hedgeCoin.defaultRebalanceWorth = hedgeCoin.rebalanceWorth;
         newToken = new fnxProxy(rebaseImplement,rebaseVersion);
         hedgeCoin.leverageToken = IRebaseToken(address(newToken));
+        hedgeCoin.leverageToken.modifyPermission(address(this),0xFFFFFFFFFFFFFFFF);
         hedgeCoin.token = hedgeCoin.stakePool.poolToken();
         if(hedgeCoin.token != address(0)){
             IERC20 oToken = IERC20(hedgeCoin.token);

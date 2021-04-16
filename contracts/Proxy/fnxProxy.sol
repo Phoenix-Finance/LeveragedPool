@@ -15,7 +15,7 @@ contract fnxProxy {
         _setImplementation(implementation_);
         _setVersion(version_);
         emit Upgraded(implementation_,version_);
-        (bool success,) = implementation_.delegatecall(abi.encodeWithSignature("initialize()"));
+        (bool success,) = implementation_.delegatecall(abi.encodeWithSignature("initialize(uint256)",version_));
         require(success);
     }
     /**
@@ -79,7 +79,7 @@ contract fnxProxy {
         _setImplementation(_newImplementation);
         _setVersion(version_);
         emit Upgraded(_newImplementation,version_);
-        (bool success,) = _newImplementation.delegatecall(abi.encodeWithSignature("update()"));
+        (bool success,) = _newImplementation.delegatecall(abi.encodeWithSignature("update(uint256)",version_));
         require(success);
     }
     /**

@@ -7,15 +7,13 @@ contract rebaseToken is rebaseTokenData {
      * @dev Returns the amount of tokens in existence.
      */
     constructor () public{
-        initialize();
     } 
-    function initialize() public{
-        _owner = msg.sender;
-        emit OwnershipTransferred(address(0), _owner);
+    function initialize(uint256 _version) public{
+        versionUpdater.initialize(_version);
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
         decimals = 18;
     }
-    function newErc20(uint256 leftAmount) external onlyOwner{
+    function newErc20(uint256 leftAmount) external onlyOwner addressPermissionAllowed(msg.sender,allowNewErc20){
         Erc20InfoList[Erc20InfoList.length-1].leftAmount = leftAmount;
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
     }
@@ -43,7 +41,7 @@ contract rebaseToken is rebaseTokenData {
         symbol = _symbol;
         leftToken = IERC20(token);
     }
-    function calRebalanceRatio(uint256 newTotalSupply) public {
+    function calRebalanceRatio(uint256 newTotalSupply) public addressPermissionAllowed(msg.sender,allowRebalance) {
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];
         if (info._totalSupply > 0){
             info.rebaseRatio = newTotalSupply.mul(rebaseDecimal)/info._totalSupply;
@@ -151,11 +149,11 @@ contract rebaseToken is rebaseTokenData {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue));
         return true;
     }
-    function burn(address account,uint256 amount) public returns (bool){
+    function burn(address account,uint256 amount) public addressPermissionAllowed(msg.sender,allowBurn) returns (bool){
         _burn(account, amount);
         return true;
     }
-    function mint(address account,uint256 amount) public returns (bool){
+    function mint(address account,uint256 amount) public addressPermissionAllowed(msg.sender,allowMint) returns (bool){
         _mint(account,amount);
         return true;
     }

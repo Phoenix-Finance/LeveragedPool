@@ -90,6 +90,8 @@ contract leveragedFactroy is Ownable{
             fnxOracle,uniswap,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
             liquidateThreshold,leverageRebaseWorth+(hedgeRebaseWorth<<128),baseCoinName);
         _leveragePool = address(uint160(address(newPool)));
+        IStakePool(_stakePoolA).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
+        IStakePool(_stakePoolA).modifyPermission(_stakePoolB,0xFFFFFFFFFFFFFFFF);
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
         view returns (address _stakePoolA,address _stakePoolB,address _leveragePool){
@@ -117,7 +119,7 @@ contract leveragedFactroy is Ownable{
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         return keccak256(abi.encodePacked(token0, token1,leverageRatio));
     }
-    function createStatePool(address token,uint64 _interestrate)public returns(address payable){
+    function createStatePool(address token,uint64 _interestrate)public onlyOwner returns(address payable){
         address payable stakePool = stakePoolMap[token];
         if(stakePool == address(0)){
             address fptCoin = createFptCoin(token);
