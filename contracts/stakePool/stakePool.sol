@@ -6,12 +6,6 @@ import "./stakePoolData.sol";
 contract stakePool is stakePoolData{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    uint256 constant internal calDecimal = 1e8; 
-    uint256 internal _totalSupply;
-    address internal _poolToken;
-    uint64 internal _interestRate;
-    mapping (address => uint256) internal loanAccountMap;
-    event DebugEvent(address indexed from,uint256 value1,uint256 value2);
     function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) public{
         _FPTCoin = IFPTCoin(fptToken);
         _poolToken = stakeToken;
@@ -45,14 +39,15 @@ contract stakePool is stakePoolData{
         uint256 _loan = amount.mul((calDecimal-_interestRate))/calDecimal;
         _totalSupply = _totalSupply.add(amount-_loan);
         _redeem(msg.sender,_poolToken,_loan);
+        emit Borrow(msg.sender,_poolToken,amount,_loan);
         return _loan;
     }
     function borrowAndInterest(uint256 amount) public addressPermissionAllowed(msg.sender,allowBorrow) returns(uint256){
         loanAccountMap[msg.sender] = loanAccountMap[msg.sender].add(amount);
         uint256 _loan = amount.sub(loanAccountMap[msg.sender].mul(_interestRate)/calDecimal);
         _totalSupply = _totalSupply.add(amount-_loan);
-
         _redeem(msg.sender,_poolToken,_loan);
+        emit Borrow(msg.sender,_poolToken,amount,_loan);
         return _loan;
     }
     function repay(uint256 amount) public payable addressPermissionAllowed(msg.sender,allowRepay) {

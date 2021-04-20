@@ -77,21 +77,34 @@ contract leveragedFactroy is Ownable{
         bytes32 poolKey = getPairHash(tokenA,tokenB,leverageRatio);
         _leveragePool = leveragePoolMap[poolKey];
         if(_leveragePool == address(0)){
-            _leveragePool = createLeveragePool_sub(getStakePool(tokenA),getStakePool(tokenB),leverageRatio,leverageRebaseWorth,hedgeRebaseWorth);
+            _leveragePool = createLeveragePool_sub(tokenA,tokenB);
             leveragePoolMap[poolKey] = _leveragePool;
             leveragePoolList.push(_leveragePool);
+            setLeveragePoolInfo_sub(_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth);
         }
     }
-    function createLeveragePool_sub(address _stakePoolA,address _stakePoolB,uint64 leverageRatio,
-        uint256 leverageRebaseWorth,uint256 hedgeRebaseWorth)internal returns (address payable _leveragePool){
+    function createLeveragePool_sub(address _stakePoolA,address _stakePoolB)internal returns (address payable _leveragePool){
+        _stakePoolA = getStakePool(_stakePoolA);
+        _stakePoolB = getStakePool(_stakePoolB);
         require(_stakePoolA!=address(0) && _stakePoolB!=address(0),"Stake pool is not created");
-        ILeveragedPool newPool = ILeveragedPool(address(new fnxProxy(leveragePoolImpl,leveragePoolVersion)));
-        newPool.setLeveragePoolInfo(feeAddress,rebaseTokenImpl,leveragePoolVersion,_stakePoolA,_stakePoolB,
-            fnxOracle,uniswap,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
-            liquidateThreshold,leverageRebaseWorth+(hedgeRebaseWorth<<128),baseCoinName);
+        fnxProxy newPool = new fnxProxy(leveragePoolImpl,leveragePoolVersion);
         _leveragePool = address(uint160(address(newPool)));
+        ILeveragedPool pool = ILeveragedPool(_leveragePool);
+        pool.setLeveragePoolAddress(feeAddress,_stakePoolA,_stakePoolB,fnxOracle,uniswap);
         IStakePool(_stakePoolA).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
-        IStakePool(_stakePoolA).modifyPermission(_stakePoolB,0xFFFFFFFFFFFFFFFF);
+        IStakePool(_stakePoolB).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
+    }
+    function setLeveragePoolInfo_sub(address payable _leveragePool,address tokenA,address tokenB,uint64 leverageRatio,
+        uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth) internal {
+        string memory token0 = (tokenA == address(0)) ? baseCoinName : IERC20(tokenA).symbol();
+        string memory token1 = (tokenB == address(0)) ? baseCoinName : IERC20(tokenB).symbol();
+        string memory suffix = leverageSuffix(leverageRatio);
+
+        string memory leverageName = string(abi.encodePacked("LPT_",token0,uint8(95),token1,suffix));
+        string memory hedgeName = string(abi.encodePacked("HPT_",token1,uint8(95),token0,suffix));
+        ILeveragedPool newPool = ILeveragedPool(_leveragePool);
+        newPool.setLeveragePoolInfo(rebaseTokenImpl,rebaseTokenVersion,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
+            liquidateThreshold,leverageRebaseWorth+(hedgeRebaseWorth<<128),leverageName,hedgeName);
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
         view returns (address _stakePoolA,address _stakePoolB,address _leveragePool){
@@ -181,5 +194,30 @@ contract leveragedFactroy is Ownable{
         for(uint256 i=0;i<len;i++){
             ILeveragedPool(leveragePoolList[i]).setOracleAddress(_fnxOracle);
         }
+    }
+    function leverageSuffix(uint256 leverageRatio) internal pure returns (string memory){
+        if (leverageRatio == 0) return "0";
+        uint256 integer = leverageRatio*10/1e8;
+        uint8 fraction = uint8(integer%10+48);
+        integer = integer/10;
+        uint8 ten = uint8(integer/10+48);
+        uint8 unit = uint8(integer%10+48);
+        bytes memory suffix = new bytes(7);
+        suffix[0] = bytes1(uint8(95));
+        suffix[1] = bytes1(uint8(88));
+        uint len = 2;
+        if(ten>48){
+                suffix[len++] = bytes1(ten);
+            }
+        suffix[len++] = bytes1(unit);
+        if (fraction>48){
+            suffix[len++] = bytes1(uint8(46));
+            suffix[len++] = bytes1(fraction);
+        }
+        bytes memory newSuffix = new bytes(len);
+        for(uint i=0;i<len;i++){
+            newSuffix[i] = suffix[i];
+        }
+        return string(newSuffix);
     }
 }

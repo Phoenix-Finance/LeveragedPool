@@ -9,21 +9,29 @@ const FNXOracle = artifacts.require("FNXOracle");
 const IUniswapV2Router02 = artifacts.require("IUniswapV2Router02");
 const IUniswapV2Factory = artifacts.require("IUniswapV2Factory");
 const leveragedFactroy = artifacts.require("leveragedFactroy");
+let leverageCheck = require("../check/leverageCheck.js");
+let eventDecoderClass = require("../contract/eventDecoder.js")
 let eth = "0x0000000000000000000000000000000000000000";
+let FPTCoinAbi = require("../../build/contracts/FPTCoin.json").abi;
+let leveragedPoolAbi = require("../../build/contracts/leveragedPool.json").abi;
+let stakePoolAbi = require("../../build/contracts/stakePool.json").abi;
 contract('leveragedPool', function (accounts){
     let fnx;
     let univ2;
     let routerV2;
     let uniFactory;
     let weth;
+    let eventDecoder;
     before(async () => {
-        fnx = await IERC20.at("0x6084d548B66F03239041c3698Bbcd213d152845F");
-        univ2 = "0x948EB179eeAFD0617CC881DE74771BDF3727503e";
+        fnx = await IERC20.at("0x8Fab2f69f9E3D60bF3873805092a37083D651B30");
+        univ2 = "0xD48C1223A884d01cF8Bde22b2d87E21BC372D7D8";
         routerV2 = await IUniswapV2Router02.at(univ2);
         let addr = await routerV2.factory();
         uniFactory = await IUniswapV2Factory.at(addr);
         let wethaddr = await routerV2.WETH();
         weth = await IERC20.at(wethaddr);
+        eventDecoder = new eventDecoderClass();
+        eventDecoder.initEventsMap([FPTCoinAbi,leveragedPoolAbi,stakePoolAbi]);
     }); 
     it('leveragedPool normal tests', async function (){
 
@@ -46,9 +54,19 @@ contract('leveragedPool', function (accounts){
         spoolAddress = await lFactory.getStakePool(eth);
         let stakepoolB = await stakePool.at(spoolAddress);
         await lFactory.createLeveragePool(fnx.address,eth,3e8,"100000000000000000000","100000000000000000");
+
         spoolAddress = await lFactory.getLeveragePool(fnx.address,eth,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
         let tokens = await lToken.leverageTokens();
+        let contracts = {
+            tokenAddr : [fnx.address,eth],
+            token : [fnx,eth],
+            stakepool : [stakepoolA,stakepoolB],
+            leveragePool : lToken,
+            oracle: oracle,
+            rebaseToken : [await IERC20.at(tokens[0]),await IERC20.at(tokens[0])]
+        }
+        
         console.log("tokens : ",tokens);
         let pair = await uniFactory.getPair(weth.address,fnx.address);
         let ethBalance = await weth.balanceOf(pair);
@@ -73,36 +91,11 @@ contract('leveragedPool', function (accounts){
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         await fnx.approve(stakepoolA.address,"1000000000000000000000");
         await stakepoolA.stake("1000000000000000000000");
-
-        await fnx.approve(lToken.address,"1000000000000000000");
-        await lToken.buyLeverage("1000000000000000000","9000000000000000","0x");
-        await fnx.approve(lToken.address,"1000000000000000000");
-        await lToken.buyLeverage("1000000000000000000","9000000000000000","0x");
+        await leverageCheck.buyLeverage(eventDecoder,contracts,0,"1000000000000000000","9000000000000000",accounts[0]);
+        await leverageCheck.buyLeverage(eventDecoder,contracts,0,"1000000000000000000","9000000000000000",accounts[0]);
         
-        netWroth = await lToken.getTokenNetworths();
-        console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
-        ethBalance = await weth.balanceOf(pair);
-        console.log("WETH Balance : ",ethBalance.toString());
-        ethBalance = await web3.eth.getBalance(weth.address);
-        console.log("ETH Balance : ",ethBalance.toString());
-        fnxBalance = await fnx.balanceOf(pair);
-        console.log("FNX Balance : ",fnxBalance.toString());
-
-        ethBalance = await weth.balanceOf(pair);
-        console.log("WETH Balance : ",ethBalance.toString());
-        ethBalance = await web3.eth.getBalance(weth.address);
-        console.log("ETH Balance : ",ethBalance.toString());
-        ethBalance = await web3.eth.getBalance(lToken.address);
-        console.log("ETH Balance1 : ",ethBalance.toString());
-        fnxBalance = await fnx.balanceOf(lToken.address);
-        console.log("FNX Balance : ",fnxBalance.toString());
-        fnxBalance = await fnx.balanceOf(stakepoolA.address);
-        console.log("FNX Balance : ",fnxBalance.toString());
-        
-        let rebaseToken1 = await IERC20.at(tokens[0]);
-        fnxBalance = await rebaseToken1.balanceOf(accounts[0]);
-        console.log("rebase Balance : ",fnxBalance.toString());
         await lToken.rebalance();
+        return;
         ethBalance = await weth.balanceOf(pair);
         console.log("WETH Balance : ",ethBalance.toString());
         ethBalance = await web3.eth.getBalance(weth.address);
