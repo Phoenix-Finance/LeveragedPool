@@ -18,8 +18,14 @@ contract leveragedPool is leveragedData{
     function setFeeAddress(address payable addrFee) onlyOwner public {
         feeAddress = addrFee;
     }
-    function leverageTokens() public view returns (address,address){
-        return (address(leverageCoin.leverageToken),address(hedgeCoin.leverageToken));
+    function getLeverageRebase() public view returns (bool,bool) {
+        return (leverageCoin.bRebase,hedgeCoin.bRebase);
+    }
+    function getLeverageInfo() public view returns (address,address,address,uint256,uint256) {
+        return (leverageCoin.token,address(leverageCoin.stakePool),address(leverageCoin.leverageToken),leverageCoin.leverageRate,leverageCoin.rebalanceWorth);
+    }
+    function getHedgeInfo() public view returns (address,address,address,uint256,uint256) {
+        return (hedgeCoin.token,address(hedgeCoin.stakePool),address(hedgeCoin.leverageToken),hedgeCoin.leverageRate,hedgeCoin.rebalanceWorth);
     }
     function setLeverageFee(uint256 _buyFee,uint256 _sellFee,uint256 _rebalanceFee) onlyOwner public{
         buyFee = _buyFee;
@@ -47,7 +53,7 @@ contract leveragedPool is leveragedData{
         }
     }
     function setLeveragePoolInfo(address rebaseImplement,uint256 rebaseVersion,
-        uint256 fees,uint256 _liquidateThreshold,uint256 rebaseWorth,string memory leverageTokenName,string memory hedgeTokenName) public onlyOwner {
+        uint256 fees,uint256 _threshold,uint256 rebaseWorth,string memory leverageTokenName,string memory hedgeTokenName) public onlyOwner {
         defaultLeverageRatio = uint64(fees>>192);
         defaultRebalanceWorth = rebaseWorth;
         setPoolInfo(leverageCoin,uint128(rebaseWorth),rebaseImplement,rebaseVersion,leverageTokenName);
@@ -55,7 +61,8 @@ contract leveragedPool is leveragedData{
         buyFee = uint64(fees);
         sellFee = uint64(fees>>64);
         rebalanceFee = uint64(fees>>128);
-        liquidateThreshold = _liquidateThreshold;
+        rebaseThreshold = uint128(_threshold);
+        liquidateThreshold = uint128(_threshold<<128);
 
         rebasePrice = _getUnderlyingPriceView(0);
     }
@@ -70,9 +77,6 @@ contract leveragedPool is leveragedData{
     }
     function getDefaultLeverageRate()public view returns (uint256){
         return defaultLeverageRatio;
-    }
-    function leverageRates()public view returns (uint256,uint256){
-        return (leverageCoin.leverageRate,hedgeCoin.leverageRate);
     }
     function UnderlyingPrice(uint8 id) internal view returns (uint256){
         if (id == 0){
@@ -108,9 +112,7 @@ contract leveragedPool is leveragedData{
         allLoan = allLoan.mul(coinInfo.leverageRate-feeDecimal);
         return underlyingPrice.mul(underlyingBalance(coinInfo.id)).sub(allLoan);
     }
-    function rebalanceWorth() public view returns(uint256,uint256){
-        return (leverageCoin.rebalanceWorth,hedgeCoin.rebalanceWorth);
-    }
+
     function buyPrices() public view returns(uint256,uint256){
         return (_tokenNetworthBuy(leverageCoin),_tokenNetworthBuy(hedgeCoin));
     }
@@ -180,19 +182,20 @@ contract leveragedPool is leveragedData{
         uint256 userLoan = amount.mul(coinInfo.rebalanceWorth)/feeDecimal;
         userLoan = userLoan.mul(coinInfo.leverageRate-feeDecimal);
         uint256 getLoan = coinInfo.stakePool.loan(address(this)).mul(calDecimal);
-        if (userLoan > getLoan) {
+        if(coinInfo.leverageToken.totalSupply() == amount || userLoan > getLoan) {
             userLoan = getLoan;
         }
+        emit DebugEvent(address(0x2222),userLoan, getLoan);
         uint256 userPayback =  amount.mul(_tokenNetworth(coinInfo,UnderlyingPrice(coinInfo.id)));
         uint256 allSell = swap(false,coinInfo.id,userLoan.add(userPayback)/UnderlyingPrice(coinInfo.id),0);
+        emit DebugEvent(address(0x3333),userPayback,userLoan.add(userPayback)/UnderlyingPrice(coinInfo.id));
         userLoan = userLoan/calDecimal;
         emit DebugEvent(address(111), allSell, userLoan);
         (uint256 repay,uint256 fee) = getFees(sellFee,allSell.sub(userLoan));
         require(repay >= minAmount, "Repay amount is less than minAmount");
-        _repay(coinInfo,userLoan);
+        _repay(coinInfo,userLoan,false);
         _redeem(msg.sender,coinInfo.token,repay);
         coinInfo.leverageToken.burn(msg.sender,amount);
-        emit DebugEvent(address(0x555), fee, underlyingBalance(0));
         _redeem(feeAddress, coinInfo.token, fee);
     }
     
@@ -227,6 +230,11 @@ contract leveragedPool is leveragedData{
             allLoan = poolBalance;
             coinInfo.leverageRate = poolBalance.mul(feeDecimal)/totalWorth + feeDecimal;
         } 
+        {
+            uint256 buyPrice = _tokenNetworthBuy(coinInfo).mul(feeDecimal);
+            uint256 defaultWorth = coinInfo.id == 0 ? uint128(defaultRebalanceWorth) : uint128(defaultRebalanceWorth>>128);
+            coinInfo.bRebase = buyPrice<defaultWorth.mul(feeDecimal-rebaseThreshold) || buyPrice>defaultWorth.mul(feeDecimal+rebaseThreshold);
+        }
         uint256 loadInterest = allLoan.mul(insterest)/1e8;
         emit DebugEvent(address(0x321), loadInterest, coinInfo.rebalanceWorth);
         uint256 newUnderlying = totalWorth+allLoan-loadInterest;
@@ -303,25 +311,28 @@ contract leveragedPool is leveragedData{
     function _liquidate(leverageInfo storage coinInfo) canLiquidate(coinInfo)  internal{
         //all selled
         uint256 amount = swap(false,coinInfo.id,underlyingBalance(coinInfo.id),0);
-        uint256 fee;
-        (amount,fee) = getFees(rebalanceFee,amount);
+        (uint256 leftAmount,uint256 fee) = getFees(rebalanceFee,amount);
+        uint256 allLoan = coinInfo.stakePool.loan(address(this));
+        if (amount<allLoan){
+            allLoan = amount;
+            leftAmount = amount;
+            fee = 0;
+        }else if(leftAmount<allLoan){
+            leftAmount = allLoan;
+            fee = amount-leftAmount;
+        }
         if(fee>0){
             _redeem(feeAddress,coinInfo.token, fee);
         } 
-        uint256 allLoan = coinInfo.stakePool.loan(address(this));
-        if (amount > allLoan){
-            _repay(coinInfo,allLoan);
-            _redeem(address(uint160(address(coinInfo.leverageToken))),coinInfo.token,amount-allLoan);
-            coinInfo.leverageToken.newErc20(amount-allLoan);
-        }else{
-            _repay(coinInfo,amount);
-        }
+        _repay(coinInfo,allLoan,true);
+        _redeem(address(uint160(address(coinInfo.leverageToken))),coinInfo.token,leftAmount-allLoan);
+        coinInfo.leverageToken.newErc20(leftAmount-allLoan);
     }
-    function _repay(leverageInfo memory coinInfo,uint256 amount)internal{
+    function _repay(leverageInfo memory coinInfo,uint256 amount,bool bAll)internal{
         if (coinInfo.token == address(0)){
-            coinInfo.stakePool.repay.value(amount)(amount);
+            coinInfo.stakePool.repay.value(amount)(amount,bAll);
         }else{
-            coinInfo.stakePool.repay(amount);
+            coinInfo.stakePool.repay(amount,bAll);
         }
     }
     function _repayAndInterest(leverageInfo memory coinInfo,uint256 amount)internal{
@@ -390,11 +401,28 @@ contract leveragedPool is leveragedData{
         uint256[]memory prices = oraclegetPrices(assets);
         return id == 0 ? prices[1]*calDecimal/prices[0] : prices[0]*calDecimal/prices[1];
     }
+
+    function getEnableLiquidate()public view returns (bool,bool){
+        uint256[] memory assets = new uint256[](2);
+        assets[0] = uint256(leverageCoin.token);
+        assets[1] = uint256(hedgeCoin.token);
+        uint256[]memory prices = oraclegetPrices(assets);
+        uint256 price0 = prices[1]*(calDecimal+calDecimal/100)/prices[0];
+        uint256 price1 = prices[0]*(calDecimal+calDecimal/100)/prices[1];
+        return (checkLiquidate(leverageCoin,price0),
+                checkLiquidate(hedgeCoin,price1));
+    }
+    function checkLiquidate(leverageInfo memory coinInfo,uint256 curPrice) internal view returns(bool){
+        if(coinInfo.leverageToken.totalSupply() == 0){
+            return false;
+        }
+        uint256 rePrice = getRebasePrice(coinInfo.id);
+        //3CP-2RP < RP*liquidateThreshold
+        return curPrice.mul(coinInfo.leverageRate).sub(rePrice.mul(coinInfo.leverageRate-feeDecimal)) < rePrice.mul(liquidateThreshold);
+    }
     modifier canLiquidate(leverageInfo memory coinInfo){
-        require(coinInfo.leverageToken.totalSupply()>0,"Liquidate : current pool is empty!");
         currentPrice = _getUnderlyingPriceView(0);
-        uint256 allLoan = coinInfo.rebalanceWorth.mul(coinInfo.leverageRate-feeDecimal);
-        require(UnderlyingPrice(coinInfo.id).mul(feeDecimal+liquidateThreshold)<allLoan,"Liquidate: current price is not under the threshold!");
+        require(checkLiquidate(coinInfo,UnderlyingPrice(coinInfo.id)),"Liquidate: current price is not under the threshold!");
         _;
     }
     modifier ensure(uint deadline) {

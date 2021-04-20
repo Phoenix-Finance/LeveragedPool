@@ -50,9 +50,15 @@ contract stakePool is stakePoolData{
         emit Borrow(msg.sender,_poolToken,amount,_loan);
         return _loan;
     }
-    function repay(uint256 amount) public payable addressPermissionAllowed(msg.sender,allowRepay) {
+    function repay(uint256 amount,bool bAll) public payable addressPermissionAllowed(msg.sender,allowRepay) {
         amount = getPayableAmount(_poolToken,amount);
-        loanAccountMap[msg.sender] = loanAccountMap[msg.sender].sub(amount);
+        if(!bAll){
+            loanAccountMap[msg.sender] = loanAccountMap[msg.sender].sub(amount);
+        }else{
+            _totalSupply = _totalSupply.sub(loanAccountMap[msg.sender]).add(amount);
+            loanAccountMap[msg.sender] = 0;
+        }
+        emit Repay(msg.sender,_poolToken,amount,loanAccountMap[msg.sender]);
     }
     function repayAndInterest(uint256 amount) public payable addressPermissionAllowed(msg.sender,allowRepay) returns(uint256){
         amount = getPayableAmount(_poolToken,amount);
@@ -61,8 +67,8 @@ contract stakePool is stakePoolData{
             repayAmount = amount;
         }
         loanAccountMap[msg.sender] = loanAccountMap[msg.sender].sub(repayAmount);
-        emit DebugEvent(msg.sender,repayAmount,amount);
         _totalSupply = _totalSupply.add(amount-repayAmount);
+        emit RepayAndInterest(msg.sender,_poolToken,repayAmount,amount-repayAmount,loanAccountMap[msg.sender]);
         return repayAmount;
     }
     function FPTTotalSuply()public view returns (uint256){
@@ -79,6 +85,7 @@ contract stakePool is stakePoolData{
         uint256 mintAmount = amount.mul(calDecimal)/netWorth;
         _totalSupply = _totalSupply.add(amount);
         _FPTCoin.mint(msg.sender,mintAmount);
+        emit Stake(msg.sender,_poolToken,amount,mintAmount);
     }
     function unstake(uint256 amount) public nonReentrant {
         require(amount > 0, 'unstake amount is zero');
@@ -88,6 +95,7 @@ contract stakePool is stakePoolData{
         _FPTCoin.burn(msg.sender,amount);
         _totalSupply = _totalSupply.sub(redeemAmount);
         _redeem(msg.sender,_poolToken,redeemAmount);
+        emit Unstake(msg.sender,_poolToken,redeemAmount,amount);
     }
     function getPayableAmount(address stakeCoin,uint256 amount) internal returns (uint256) {
         if (stakeCoin == address(0)){
@@ -118,5 +126,6 @@ contract stakePool is stakePoolData{
             uint256 afterBalance = token.balanceOf(address(this));
             require(preBalance - afterBalance == amount,"settlement token transfer error!");
         }
+        emit Redeem(recieptor,stakeCoin,amount);
     }
 }

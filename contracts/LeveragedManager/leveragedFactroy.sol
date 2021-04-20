@@ -45,6 +45,7 @@ contract leveragedFactroy is Ownable{
     uint64 public sellFee;
     uint64 public rebalanceFee;
     uint64 public interestRate;
+    uint64 public rebaseThreshold;
     uint64 public liquidateThreshold;
 
 
@@ -56,7 +57,7 @@ contract leveragedFactroy is Ownable{
     } 
     function initFactroryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _uniswap,address payable _feeAddress,
-             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _liquidateThreshold,uint64 _interestRate) public onlyOwner{
+             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestRate) public onlyOwner{
                 baseCoinName = _baseCoinName;
                 stakePoolImpl = _stakePoolImpl;
                 leveragePoolImpl = _leveragePoolImpl;
@@ -68,6 +69,7 @@ contract leveragedFactroy is Ownable{
                 buyFee = _buyFee;
                 sellFee = _sellFee;
                 rebalanceFee = _rebalanceFee;
+                rebaseThreshold = _rebaseThreshold;
                 liquidateThreshold = _liquidateThreshold;
                 interestRate = _interestRate;
              }
@@ -104,7 +106,7 @@ contract leveragedFactroy is Ownable{
         string memory hedgeName = string(abi.encodePacked("HPT_",token1,uint8(95),token0,suffix));
         ILeveragedPool newPool = ILeveragedPool(_leveragePool);
         newPool.setLeveragePoolInfo(rebaseTokenImpl,rebaseTokenVersion,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
-            liquidateThreshold,leverageRebaseWorth+(hedgeRebaseWorth<<128),leverageName,hedgeName);
+            rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth+(uint256(hedgeRebaseWorth)<<128),leverageName,hedgeName);
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
         view returns (address _stakePoolA,address _stakePoolB,address _leveragePool){

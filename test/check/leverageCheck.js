@@ -32,6 +32,48 @@ module.exports = {
         let input = amount.sub(fee);
         let tokenAmount = input.mul(this.calDecimal).div(price[index]);
         let rebaseBalance = await contracts.rebaseToken[index].balanceOf(account);
+        console.log("rebaseBalance",rebaseBalancePre.toString(10),rebaseBalance.toString(10));
+        rebaseBalance = rebaseBalance.sub(rebaseBalancePre);
+        assert(tokenAmount.eq(rebaseBalance),tokenAmount.toString(10)+","+rebaseBalance.toString(10)+ " : rebase token balance check failed!");
+        let borrowEvent = this.findEvent(events,"Borrow",0)
+        let loan = contracts.info[index][3].sub(this.feeDecimal).mul(tokenAmount).mul(contracts.info[index][4]).div(this.feeDecimal).div(this.calDecimal);
+        assert(loan.eq(new BN(borrowEvent.loan)),loan.toString(10)+","+borrowEvent.loan+ " : leverage loan check failed!");
+        let rate = await contracts.stakepool[index].interestRate();
+        let borrow = loan.mul(this.feeDecimal.sub(rate)).div(this.feeDecimal);
+        assert(borrow.eq(new BN(borrowEvent.borrow)),borrow.toString(10)+","+borrowEvent.borrow+ " : leverage borrow check failed!");
+        let swap = this.findEvent(events,"Swap",0);
+        let swapFrom = borrow.add(amount).sub(fee);
+        assert(swapFrom.eq(new BN(swap.fromValue)),swapFrom.toString(10) +","+swap.fromValue+ " : swap from value check failed!");
+        let prices = await contracts.oracle.getPrices(contracts.tokenAddr);
+        let underlyingPrice = this.getUnderlyingPrice(prices,index);
+        let netWorth = underlyingPrice.mul(new BN(swap.toValue)).sub(loan.mul(this.calDecimal)).div(rebaseBalance);
+        let getNetworth = await contracts.leveragePool.getTokenNetworths();
+        console.log(getNetworth[index].toString(10),netWorth.toString(10));
+        //assert(getNetworth[index].eq(netWorth),getNetworth[index].toString(10) +","+netWorth.toString(10)+ " : networth check failed!");
+    },
+    rebalance : async function(eventDecoder,contracts,index,account) {
+        let receipt = await contracts.leveragePool.rebalance({from:account});
+    },
+    sellLeverage : async function(eventDecoder,contracts,index,amount,minAmount,account) {
+        fnxBalance = await contracts.rebaseToken[index].balanceOf(accounts[0]);
+        await contracts.rebaseToken[0].approve(contracts.leveragePool.address,fnxBalance);
+        let receipt;
+        if(index == 0){
+            receipt = await lToken.sellLeverage(fnxBalance,this.getDeadLine(),[]);
+        }else{
+            receipt = await lToken.sellHedge(fnxBalance,this.getDeadLine(),[]);
+        }
+
+        let events = eventDecoder.decodeTxEvents(receipt);
+        let fees = await contracts.leveragePool.getLeverageFee();
+        let fee = amount.mul(fees[0]).div(this.feeDecimal)
+        let feeEvent = this.findEvent(events,"Redeem",0)
+        console.log(feeEvent);
+        assert(fee.eq(new BN(feeEvent.amount)),fee.toString(10)+","+feeEvent.amount+ " : Buy leverage fee check failed!");
+        let price = await contracts.leveragePool.buyPrices();
+        let input = amount.sub(fee);
+        let tokenAmount = input.mul(this.calDecimal).div(price[index]);
+        let rebaseBalance = await contracts.rebaseToken[index].balanceOf(account);
         rebaseBalance = rebaseBalance.sub(rebaseBalancePre);
         assert(tokenAmount.eq(rebaseBalance),tokenAmount.toString(10)+","+rebaseBalance.toString(10)+ " : rebase token balance check failed!");
         let borrowEvent = this.findEvent(events,"Borrow",0)
@@ -50,10 +92,6 @@ module.exports = {
         let netWorth = underlyingPrice.mul(new BN(swap.toValue)).sub(loan.mul(this.calDecimal)).div(rebaseBalance);
         let getNetworth = await contracts.leveragePool.getTokenNetworths();
         console.log(getNetworth[index].toString(10),netWorth.toString(10));
-        //assert(getNetworth[index].eq(netWorth),getNetworth[index].toString(10) +","+netWorth.toString(10)+ " : networth check failed!");
-    },
-    rebalance : async function(eventDecoder,contracts,index,account) {
-        let receipt = await contracts.leveragePool.rebalance({from:account});
     },
     getUnderlyingPrice : function(prices,index){
         return prices[(index+1)%2].mul(this.calDecimal).div(prices[index]);
