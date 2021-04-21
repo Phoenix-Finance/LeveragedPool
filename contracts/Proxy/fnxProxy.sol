@@ -8,8 +8,6 @@ contract fnxProxy {
     bytes32 private constant versionPositon = keccak256("org.Finnexus.version.storage");
     bytes32 private constant proxyOwnerPosition  = keccak256("org.Finnexus.Owner.storage");
     event Upgraded(address indexed implementation,uint256 indexed version);
-    event DebugEvent(address indexed from,uint256 value1,uint256 value2);
-    event DebugEvent1(address indexed from,int256 value1,int256 value2);
     constructor(address implementation_,uint256 version_) public {
         // Creator of the contract is admin during initialization
         _setProxyOwner(msg.sender);

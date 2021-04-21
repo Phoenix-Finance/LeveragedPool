@@ -26,7 +26,6 @@ module.exports = {
         let fees = await contracts.leveragePool.getLeverageFee();
         let fee = amount.mul(fees[0]).div(this.feeDecimal)
         let feeEvent = this.findEvent(events,"Redeem",0)
-        console.log(feeEvent);
         assert(fee.eq(new BN(feeEvent.amount)),fee.toString(10)+","+feeEvent.amount+ " : Buy leverage fee check failed!");
         let price = await contracts.leveragePool.buyPrices();
         let input = amount.sub(fee);
@@ -68,7 +67,6 @@ module.exports = {
         let fees = await contracts.leveragePool.getLeverageFee();
         let fee = amount.mul(fees[0]).div(this.feeDecimal)
         let feeEvent = this.findEvent(events,"Redeem",0)
-        console.log(feeEvent);
         assert(fee.eq(new BN(feeEvent.amount)),fee.toString(10)+","+feeEvent.amount+ " : Buy leverage fee check failed!");
         let price = await contracts.leveragePool.buyPrices();
         let input = amount.sub(fee);
@@ -101,9 +99,6 @@ module.exports = {
         for (var i=0;i<events.length;i++){
             if(events[i][0] == name){
                 if(index == 0){
-                    console.log(events[i]);
-                    console.log(events[i][1]);
-                    console.log(events[i][1].amount);
                     return events[i][1];
                 }else{
                     index--;
