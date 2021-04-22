@@ -17,7 +17,7 @@ module.exports = class eventDecoder {
             let result = web3.eth.abi.decodeLog(this.eventsMap[log.topics[0]].inputs,log.data,log.topics.slice(1));
             return [this.eventsMap[log.topics[0]].name,result];
         }else{
-            console.log("event not find :",log)
+            //console.log("event not find :",log)
         }
     }
     decodeTxEvents(receipt){

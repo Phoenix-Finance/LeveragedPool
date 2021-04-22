@@ -11,6 +11,7 @@ import "../proxy/fnxProxy.sol";
 import "../leveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
 import "../ERC20/IERC20.sol";
+import "../rebaseToken/IRebaseToken.sol";
 /**
  * @title FNX period mine pool.
  * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
@@ -105,8 +106,16 @@ contract leveragedFactroy is Ownable{
         string memory leverageName = string(abi.encodePacked("LPT_",token0,uint8(95),token1,suffix));
         string memory hedgeName = string(abi.encodePacked("HPT_",token1,uint8(95),token0,suffix));
         ILeveragedPool newPool = ILeveragedPool(_leveragePool);
-        newPool.setLeveragePoolInfo(rebaseTokenImpl,rebaseTokenVersion,uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
-            rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth+(uint256(hedgeRebaseWorth)<<128),leverageName,hedgeName);
+        newPool.setLeveragePoolInfo(createRebaseToken(_leveragePool,tokenA,leverageName),
+            createRebaseToken(_leveragePool,tokenB,hedgeName),uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
+            rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth+(uint256(hedgeRebaseWorth)<<128));
+    }
+    function createRebaseToken(address leveragePool,address token,string memory name)internal returns(address){
+        fnxProxy newToken = new fnxProxy(rebaseTokenImpl,rebaseTokenVersion);
+        IRebaseToken leverageToken = IRebaseToken(address(newToken));
+        leverageToken.modifyPermission(leveragePool,0xFFFFFFFFFFFFFFFF);
+        leverageToken.changeTokenName(name,name,token);
+        return address(newToken);
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
         view returns (address _stakePoolA,address _stakePoolB,address _leveragePool){

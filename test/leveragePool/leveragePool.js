@@ -6,6 +6,8 @@ let eth = "0x0000000000000000000000000000000000000000";
 let FPTCoinAbi = require("../../build/contracts/FPTCoin.json").abi;
 let leveragedPoolAbi = require("../../build/contracts/leveragedPool.json").abi;
 let stakePoolAbi = require("../../build/contracts/stakePool.json").abi;
+const IERC20 = artifacts.require("IERC20");
+const BN = require("bn.js");
 contract('leveragedPool', function (accounts){
     let beforeInfo;
     before(async () => {
@@ -14,6 +16,7 @@ contract('leveragedPool', function (accounts){
         eventDecoder.initEventsMap([FPTCoinAbi,leveragedPoolAbi,stakePoolAbi]);
     }); 
     it('leveragedPool normal tests', async function (){
+
         let factoryInfo = await testInfo.createFactory(beforeInfo,accounts[0]);
         let ethBalance = await beforeInfo.weth.balanceOf(beforeInfo.pair);
         console.log("WETH Balance : ",ethBalance.toString());
@@ -29,15 +32,6 @@ contract('leveragedPool', function (accounts){
         fnxBalance = await beforeInfo.fnx.balanceOf(beforeInfo.pair);
         console.log("FNX Balance : ",fnxBalance.toString());
 
-        /*
-        let amount = "10000000000000000000000000";
-        let ethAmount =    "10000000000000000000000";
-        await fnx.transfer(accounts[9],amount);
-        await fnx.approve(routerV2.address,amount,{from:accounts[9]});
-        await routerV2.addLiquidityETH(fnx.address,amount,amount,
-            ethAmount,accounts[0],1625460000,{
-                    from:accounts[9],value:ethAmount});
-*/
         let result = await contracts.leveragePool.getLeverageFee();
         console.log("Leverage fee : ",result[0].toString(),result[1].toString(),result[2].toString());
         let netWroth = await contracts.leveragePool.getTokenNetworths();

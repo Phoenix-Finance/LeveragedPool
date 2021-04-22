@@ -41,6 +41,7 @@ module.exports = {
         let borrow = loan.mul(this.feeDecimal.sub(rate)).div(this.feeDecimal);
         assert(borrow.eq(new BN(borrowEvent.borrow)),borrow.toString(10)+","+borrowEvent.borrow+ " : leverage borrow check failed!");
         let swap = this.findEvent(events,"Swap",0);
+        console.log(swap);
         let swapFrom = borrow.add(amount).sub(fee);
         assert(swapFrom.eq(new BN(swap.fromValue)),swapFrom.toString(10) +","+swap.fromValue+ " : swap from value check failed!");
         let prices = await contracts.oracle.getPrices(contracts.tokenAddr);
@@ -62,7 +63,6 @@ module.exports = {
         }else{
             receipt = await lToken.sellHedge(fnxBalance,this.getDeadLine(),[]);
         }
-
         let events = eventDecoder.decodeTxEvents(receipt);
         let fees = await contracts.leveragePool.getLeverageFee();
         let fee = amount.mul(fees[0]).div(this.feeDecimal)

@@ -21,8 +21,8 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
     leverageInfo internal leverageCoin;
     leverageInfo internal hedgeCoin;
     IUniswapV2Router02 internal IUniswap;
-    uint256 public rebasePrice;
-    uint256 internal currentPrice;
+    uint256[2] public rebasePrices;
+    uint256[2] internal currentPrice;
     uint256 public buyFee;
     uint256 public sellFee;
     uint256 public rebalanceFee;

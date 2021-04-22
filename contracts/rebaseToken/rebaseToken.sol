@@ -13,7 +13,7 @@ contract rebaseToken is rebaseTokenData {
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
         decimals = 18;
     }
-    function newErc20(uint256 leftAmount) external onlyOwner addressPermissionAllowed(msg.sender,allowNewErc20){
+    function newErc20(uint256 leftAmount) external addressPermissionAllowed(msg.sender,allowNewErc20){
         Erc20InfoList[Erc20InfoList.length-1].leftAmount = leftAmount;
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
     }

@@ -6,7 +6,7 @@ interface ILeveragedPool {
     function setLeverageFee(uint64 buyFee,uint64 sellFee,uint64 rebalanceFee) external;
     function setHedgeFee(uint64 buyFee,uint64 sellFee,uint64 rebalanceFee) external;
     function setLeveragePoolAddress(address payable _feeAddress,address leveragePool,address hedgePool,address oracle,address swapRouter)external;
-    function setLeveragePoolInfo(address rebaseImplement,uint256 rebaseVersion,
-        uint256 fees,uint256 _threshold,uint256 rebaseWorth,string calldata leverageTokenName,string calldata hedgeTokenName)  external;
+    function setLeveragePoolInfo(address rebaseTokenA,address rebaseTokenB,
+        uint256 fees,uint256 _threshold,uint256 rebaseWorth)  external;
     function rebalance() external;
 }
