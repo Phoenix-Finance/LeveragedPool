@@ -4,11 +4,6 @@ import "../modules/SafeMath.sol";
 import "./FPTData.sol";
 contract SharedCoin is FPTData  {
     using SafeMath for uint256;
-    function initialize(uint256 _version) public{
-        versionUpdater.initialize(_version);
-        _totalSupply = 0;
-        decimals = 18;
-    }
     /**
      * EXTERNAL FUNCTION
      *

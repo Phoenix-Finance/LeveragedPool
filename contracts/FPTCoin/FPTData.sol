@@ -10,6 +10,7 @@ contract FPTData is Erc20Data,Managerable,timeLimitation,versionUpdater{
     * lockedBalances stores user's locked FPTCoin.
     * lockedTotalWorth stores user's locked worth, priced in USD. For locked FPTCoin's net worth is constant when It was locked.
     */
+    uint256 constant public implementationVersion = 0;
     uint256 internal _totalLockedWorth;
     mapping (address => uint256) internal lockedBalances;
     mapping (address => uint256) internal lockedTotalWorth;

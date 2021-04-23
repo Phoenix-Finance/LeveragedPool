@@ -7,11 +7,13 @@ contract rebaseToken is rebaseTokenData {
      * @dev Returns the amount of tokens in existence.
      */
     constructor () public{
-    } 
-    function initialize(uint256 _version) public{
-        versionUpdater.initialize(_version);
+    }
+    function initialize() public{
+        versionUpdater.initialize();
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
         decimals = 18;
+    }
+    function update() public onlyOwner versionUpdate(implementationVersion){
     }
     function newErc20(uint256 leftAmount) external addressPermissionAllowed(msg.sender,allowNewErc20){
         Erc20InfoList[Erc20InfoList.length-1].leftAmount = leftAmount;

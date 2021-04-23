@@ -8,13 +8,20 @@ contract fnxProxy {
     bytes32 private constant versionPositon = keccak256("org.Finnexus.version.storage");
     bytes32 private constant proxyOwnerPosition  = keccak256("org.Finnexus.Owner.storage");
     event Upgraded(address indexed implementation,uint256 indexed version);
-    constructor(address implementation_,uint256 version_) public {
+    constructor(address implementation_) public {
         // Creator of the contract is admin during initialization
         _setProxyOwner(msg.sender);
         _setImplementation(implementation_);
+        (bool success, bytes memory returnData) = implementation_.delegatecall(abi.encodeWithSignature("implementationVersion()"));
+        assembly {
+            if eq(success, 0) {
+                revert(add(returnData, 0x20), returndatasize)
+            }
+        }
+        uint256 version_ = abi.decode(returnData, (uint256));
         _setVersion(version_);
         emit Upgraded(implementation_,version_);
-        (bool success,) = implementation_.delegatecall(abi.encodeWithSignature("initialize(uint256)",version_));
+        (success,) = implementation_.delegatecall(abi.encodeWithSignature("initialize()"));
         require(success);
     }
     /**
@@ -72,13 +79,21 @@ contract fnxProxy {
             sstore(position, _newImplementation)
         }
     }
-    function upgradeTo(address _newImplementation,uint256 version_)public onlyProxyOwner upgradeVersion(version_){
+    function upgradeTo(address _newImplementation)public onlyProxyOwner{
         address currentImplementation = implementation();
         require(currentImplementation != _newImplementation);
         _setImplementation(_newImplementation);
+        (bool success, bytes memory returnData) = _newImplementation.delegatecall(abi.encodeWithSignature("implementationVersion()"));
+        assembly {
+            if eq(success, 0) {
+                revert(add(returnData, 0x20), returndatasize)
+            }
+        }
+        uint256 version_ = abi.decode(returnData, (uint256));
+        require (version_>version(),"upgrade version number must greater than current version");
         _setVersion(version_);
         emit Upgraded(_newImplementation,version_);
-        (bool success,) = _newImplementation.delegatecall(abi.encodeWithSignature("update(uint256)",version_));
+        (success,) = _newImplementation.delegatecall(abi.encodeWithSignature("update()"));
         require(success);
     }
     /**
@@ -86,10 +101,6 @@ contract fnxProxy {
     */
     modifier onlyProxyOwner() {
         require (msg.sender == proxyOwner(),"proxyOwner: caller is not the proxy owner");
-        _;
-    }
-    modifier upgradeVersion(uint256 version_) {
-        require (version_>version(),"upgrade version number must greater than current version");
         _;
     }
     function () payable external {

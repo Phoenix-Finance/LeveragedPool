@@ -4,10 +4,11 @@ import "../ERC20/safeErc20.sol";
 import "../modules/versionUpdater.sol";
 import "../modules/AddressPermission.sol";
 contract rebaseTokenData is Ownable,versionUpdater,AddressPermission{
-    uint256 constant allowRebalance = 1;
-    uint256 constant allowNewErc20 = 1<<1;
-    uint256 constant allowMint = 1<<2;
-    uint256 constant allowBurn = 1<<3;
+    uint256 constant public implementationVersion = 0;
+    uint256 constant public allowRebalance = 1;
+    uint256 constant public allowNewErc20 = 1<<1;
+    uint256 constant public allowMint = 1<<2;
+    uint256 constant public allowBurn = 1<<3;
     string public name;
     string public symbol;
     IERC20 public leftToken;

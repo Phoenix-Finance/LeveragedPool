@@ -7,6 +7,7 @@ import "../stakePool/IStakePool.sol";
 import "../modules/AddressPermission.sol";
 import "../modules/ReentrancyGuard.sol";
 contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPermission{
+    uint256 constant public implementationVersion = 0;
     uint256 constant internal calDecimal = 1e18; 
     uint256 constant internal feeDecimal = 1e8; 
     struct leverageInfo {

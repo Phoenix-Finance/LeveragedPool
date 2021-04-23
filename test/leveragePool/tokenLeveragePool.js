@@ -33,8 +33,8 @@ contract('leveragedPool', function (accounts){
         let decimalsA = await tokenA.decimals()
         let decimalsB = await tokenB.decimals()
         let base = new BN(10);
-        let tokenAmount0 = (new BN(100)).mul(base.pow(new BN(decimalsA)));
-        let tokenAmount1 = (new BN(100)).mul(base.pow(new BN(decimalsB)));
+        let tokenAmount0 = (new BN(1000)).mul(base.pow(new BN(decimalsA)));
+        let tokenAmount1 = (new BN(1000)).mul(base.pow(new BN(decimalsB)));
         let priceA = new BN(1e8);
         priceA = priceA.mul(base.pow(new BN(18-decimalsA)));
         let priceB = new BN(1e11);
@@ -49,10 +49,10 @@ contract('leveragedPool', function (accounts){
         let netWroth = await contracts.leveragePool.getTokenNetworths();
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         await contracts.leveragePool.rebalance();
-        await tokenA.approve(contracts.stakepool[0].address,"1000000000000000000000");
-        await contracts.stakepool[0].stake("1000000000000000000000");
-        await tokenB.approve(contracts.stakepool[1].address,"1000000000000000000000");
-        await contracts.stakepool[1].stake("1000000000000000000000");
+        await tokenA.approve(contracts.stakepool[0].address,"1000000000000000000000000");
+        await contracts.stakepool[0].stake("1000000000000000000000000");
+        await tokenB.approve(contracts.stakepool[1].address,"1000000000000000000000000");
+        await contracts.stakepool[1].stake("1000000000000000000000000");
         await contracts.leveragePool.rebalance();
         await leverageCheck.buyLeverage(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
         let aBalance = await tokenA.balanceOf(contracts.leveragePool.address);
@@ -113,5 +113,12 @@ contract('leveragedPool', function (accounts){
             let rebaseBalance = await contracts.rebaseToken[1].balanceOf(accounts[0]);
             console.log(rebaseBalance.toString());
         }
+        aBalance = await tokenA.balanceOf(contracts.leveragePool.address);
+        bBalance = await tokenB.balanceOf(contracts.leveragePool.address);
+        console.log("Underlying balances : ",bBalance.toString(),aBalance.toString())
+        fnxBalance = await contracts.rebaseToken[1].balanceOf(accounts[0]);
+        console.log("rebase Balance : ",fnxBalance.toString());
+        await contracts.rebaseToken[1].approve(lToken.address,fnxBalance);
+        await lToken.sellHedge(fnxBalance,1000,leverageCheck.getDeadLine(),"0x");
     }
 });

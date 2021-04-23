@@ -13,6 +13,14 @@ contract FPTCoin is SharedCoin {
     mapping (address => bool) internal timeLimitWhiteList;
     constructor ()public{
     }
+    function initialize() public{
+        versionUpdater.initialize();
+        _totalSupply = 0;
+        decimals = 18;
+    }
+
+    function update() public onlyOwner versionUpdate(implementationVersion){
+    }
     /**
      * @dev Retrieve user's start time for burning. 
      * @param user user's account.
