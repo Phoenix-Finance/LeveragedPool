@@ -8,7 +8,7 @@ contract leveragedPool is leveragedData{
     using SafeERC20 for IERC20;
     function() external payable {
     }
-    function update() public onlyOwner versionUpdate(implementationVersion){
+    function update() public onlyOwner versionUpdate(){
     }
     function setFeeAddress(address payable addrFee) onlyOwner public {
         feeAddress = addrFee;

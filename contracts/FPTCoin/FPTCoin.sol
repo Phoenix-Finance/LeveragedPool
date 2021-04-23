@@ -19,7 +19,7 @@ contract FPTCoin is SharedCoin {
         decimals = 18;
     }
 
-    function update() public onlyOwner versionUpdate(implementationVersion){
+    function update() public onlyOwner versionUpdate(){
     }
     /**
      * @dev Retrieve user's start time for burning. 

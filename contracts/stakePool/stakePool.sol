@@ -11,7 +11,7 @@ contract stakePool is stakePoolData{
         _poolToken = stakeToken;
         _interestRate = interestrate;
     }
-    function update() public onlyOwner versionUpdate(implementationVersion){
+    function update() public onlyOwner versionUpdate(){
     }
     function poolToken()public view returns (address){
         return _poolToken;
