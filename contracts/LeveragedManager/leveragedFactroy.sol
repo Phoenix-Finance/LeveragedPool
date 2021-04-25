@@ -182,6 +182,36 @@ contract leveragedFactroy is Ownable{
         }
         FPTCoinImpl = _FPTCoinImpl;
     }
+    function setUniswapAddress(address _uniswap)public onlyOwner{
+        uniswap = _uniswap;
+        uint256 len = leveragePoolList.length;
+        for(uint256 i = 0;i<len;i++){
+            ILeveragedPool(leveragePoolList[i]).setUniswapAddress(_uniswap);
+        }
+    }
+    function setOracleAddress(address _fnxOracle)public onlyOwner{
+        fnxOracle = _fnxOracle;
+        uint256 len = leveragePoolList.length;
+        for(uint256 i = 0;i<len;i++){
+            ILeveragedPool(leveragePoolList[i]).setOracleAddress(_fnxOracle);
+        }
+    }
+    function setFeeAddress(address payable _feeAddress)public onlyOwner{
+        feeAddress = _feeAddress;
+        uint256 len = leveragePoolList.length;
+        for(uint256 i = 0;i<len;i++){
+            ILeveragedPool(leveragePoolList[i]).setFeeAddress(_feeAddress);
+        }
+    }
+    function setLeverageFee(uint64 _buyFee,uint64 _sellFee,uint64 _rebalanceFee)public onlyOwner{
+        buyFee = _buyFee;
+        sellFee = _sellFee;
+        rebalanceFee = _rebalanceFee;
+        uint256 len = leveragePoolList.length;
+        for(uint256 i = 0;i<len;i++){
+            ILeveragedPool(leveragePoolList[i]).setLeverageFee(_buyFee,_sellFee,_rebalanceFee);
+        }
+    }
     function upgradeRebaseToken(address _rebaseTokenImpl) public onlyOwner{
         uint256 len = leveragePoolList.length;
         for(uint256 i = 0;i<len;i++){

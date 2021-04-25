@@ -10,6 +10,9 @@ contract leveragedPool is leveragedData{
     }
     function update() public onlyOwner versionUpdate(){
     }
+    function setUniswapAddress(address _uniswap) onlyOwner public {
+        IUniswap = IUniswapV2Router02(_uniswap);
+    }
     function setFeeAddress(address payable addrFee) onlyOwner public {
         feeAddress = addrFee;
     }
@@ -61,7 +64,7 @@ contract leveragedPool is leveragedData{
         sellFee = uint64(fees>>64);
         rebalanceFee = uint64(fees>>128);
         rebaseThreshold = uint128(_threshold);
-        liquidateThreshold = uint128(_threshold<<128);
+        liquidateThreshold = uint128(_threshold>>128);
 
         rebasePrices = _getUnderlyingPriceView();
     }
