@@ -11,7 +11,7 @@ contract rebaseTokenData is Ownable,versionUpdater,AddressPermission{
     uint256 constant public allowBurn = 1<<3;
     string public name;
     string public symbol;
-    IERC20 public leftToken;
+    address public leftToken;
     uint8 public decimals = 18;
     uint256 constant rebaseDecimal = 1e18;
     mapping (address => mapping (address => uint256)) internal _allowances;    
@@ -22,6 +22,7 @@ contract rebaseTokenData is Ownable,versionUpdater,AddressPermission{
         uint256 leftAmount;
     }
     Erc20Info[] internal Erc20InfoList;
+    mapping(address => uint256) public userBeginRound;
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
      * another (`to`).
@@ -35,4 +36,5 @@ contract rebaseTokenData is Ownable,versionUpdater,AddressPermission{
      * a call to {approve}. `value` is the new allowance.
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
 }

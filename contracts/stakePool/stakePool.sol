@@ -25,6 +25,9 @@ contract stakePool is stakePoolData{
     function totalSupply()public view returns (uint256){
         return _totalSupply;
     }
+    function borrowLimit(address account)public view returns (uint256){
+        return loanAccountMap[account].add(poolBalance());
+    }
     function poolBalance()public view returns (uint256){
         if (_poolToken == address(0)){
             return address(this).balance;

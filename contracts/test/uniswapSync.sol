@@ -10,13 +10,20 @@ contract uniswapSync is ImportOracle {
     function() payable external{
 
     }
+    function redeemAll(address pair)public{
+        IUniswapV2Pair uniswapPair = IUniswapV2Pair(pair);
+        IERC20 token0 = IERC20(uniswapPair.token0());
+        IERC20 token1 = IERC20(uniswapPair.token1());
+        token0.safeTransfer(msg.sender,token0.balanceOf(address(this)));
+        token1.safeTransfer(msg.sender,token1.balanceOf(address(this)));
+    }
     function syncPair(address pair) public {
         IUniswapV2Pair uniswapPair = IUniswapV2Pair(pair);
-        address token0 = uniswapPair.token0();
-        address token1 = uniswapPair.token1();
+        IERC20 token0 = IERC20(uniswapPair.token0());
+        IERC20 token1 = IERC20(uniswapPair.token1());
         uint256[] memory assets = new uint256[](2);
-        assets[0] = uint256(token0);
-        assets[1] = uint256(token1);
+        assets[0] = uint256(address(token0));
+        assets[1] = uint256(address(token1));
         uint256[]memory prices = oraclegetPrices(assets);
         (uint256 reserve0, uint256 reserve1,) = uniswapPair.getReserves();
         reserve0 = reserve0*prices[0];
@@ -24,13 +31,21 @@ contract uniswapSync is ImportOracle {
         if(reserve0>reserve1){
             reserve1 = (reserve0-reserve1)/prices[1];
             if (reserve1>0){
-                IERC20(token1).safeTransfer(pair,reserve1);
+                uint256 balance = token1.balanceOf(address(this));
+                if(balance < reserve1){
+                    reserve1 = balance;
+                }
+                token1.safeTransfer(pair,reserve1);
                 uniswapPair.sync();
             }
         }else{
             reserve0 = (reserve1-reserve0)/prices[0];
             if (reserve0>0){
-                IERC20(token0).safeTransfer(pair,reserve0);
+                uint256 balance = token0.balanceOf(address(this));
+                if(balance < reserve0){
+                    reserve0 = balance;
+                }
+                token0.safeTransfer(pair,reserve0);
                 uniswapPair.sync();
             }
         }

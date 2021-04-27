@@ -3,6 +3,7 @@ import "./rebaseTokenData.sol";
 import "../modules/SafeMath.sol";
 contract rebaseToken is rebaseTokenData {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     /**
      * @dev Returns the amount of tokens in existence.
      */
@@ -41,7 +42,25 @@ contract rebaseToken is rebaseTokenData {
         //check parameter in ico minter contract
         name = _name;
         symbol = _symbol;
-        leftToken = IERC20(token);
+        leftToken = token;
+    }
+    function getRedeemAmount(address account)public view returns(uint256){
+        uint256 len = Erc20InfoList.length-1;
+        uint amount = 0;
+        for (uint256 i=userBeginRound[account];i<len;i++){
+            Erc20Info storage info = Erc20InfoList[i];
+            if(info._totalSupply>0){
+                amount = amount.add(info.leftAmount.mul(info.balances[account])/info._totalSupply);
+            }
+        }
+        return amount;
+    }
+    function redeemAmount() public {
+        uint256 amount = getRedeemAmount(msg.sender);
+        if(amount > 0){
+            _redeem(msg.sender,leftToken,amount);
+        }
+        userBeginRound[msg.sender] = Erc20InfoList.length-1;
     }
     function calRebaseRatio(uint256 newTotalSupply) public addressPermissionAllowed(msg.sender,allowRebalance) {
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];
@@ -255,5 +274,19 @@ contract rebaseToken is rebaseTokenData {
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
-
+        /**
+     * @dev An auxiliary foundation which transter amount stake coins to recieptor.
+     * @param recieptor recieptor recieptor's account.
+     * @param stakeCoin stake address
+     * @param amount redeem amount.
+     */
+    function _redeem(address payable recieptor,address stakeCoin,uint256 amount) internal{
+        if (stakeCoin == address(0)){
+            recieptor.transfer(amount);
+        }else{
+            IERC20 token = IERC20(stakeCoin);
+            token.safeTransfer(recieptor,amount);
+        }
+        emit Redeem(recieptor,stakeCoin,amount);
+    }
 }

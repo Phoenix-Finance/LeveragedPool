@@ -28,6 +28,7 @@ module.exports = {
         let feeEvent = this.findEvent(events,"Redeem",0)
         assert(fee.eq(new BN(feeEvent.amount)),fee.toString(10)+","+feeEvent.amount+ " : Buy leverage fee check failed!");
         let price = await contracts.leveragePool.buyPrices();
+        console.log("buy prices : ",price[0].toString(),price[1].toString())
         let input = amount.sub(fee);
         let tokenAmount = input.mul(this.calDecimal).div(price[index]);
         let rebaseBalance = await contracts.rebaseToken[index].balanceOf(account);

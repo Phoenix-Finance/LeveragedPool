@@ -16,7 +16,7 @@ contract('leveragedPool', function (accounts){
         eventDecoder.initEventsMap([FPTCoinAbi,leveragedPoolAbi,stakePoolAbi]);
     }); 
     it('leveragedPool normal tests', async function (){
-        await testToken(beforeInfo.fnx,beforeInfo.WBTC,beforeInfo,accounts,false);
+        await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
     });
     async function testToken(tokenA,tokenB,beforeInfo,accounts,bFirst){
         let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0]);
@@ -73,6 +73,8 @@ contract('leveragedPool', function (accounts){
         prices = [priceA,priceB.sub(priceB.div(new BN(10)))]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);       
         let receipt = await contracts.leveragePool.rebalance();
+        let price = await contracts.leveragePool.buyPrices();
+        console.log("buy prices : ",price[0].toString(),price[1].toString())
         //let events = eventDecoder.decodeTxEvents(receipt);
         //console.log(events);
         let getNetworth = await contracts.leveragePool.getTokenNetworths();
@@ -84,6 +86,8 @@ contract('leveragedPool', function (accounts){
         prices = [priceA,priceB.sub(priceB.div(new BN(5)))]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]); 
         receipt = await contracts.leveragePool.rebalance();
+        price = await contracts.leveragePool.buyPrices();
+        console.log("buy prices : ",price[0].toString(),price[1].toString())
         //events = eventDecoder.decodeTxEvents(receipt);
         //console.log(events);
         getNetworth = await contracts.leveragePool.getTokenNetworths();
@@ -93,6 +97,8 @@ contract('leveragedPool', function (accounts){
         getNetworth = await contracts.leveragePool.getEnableLiquidate()
         console.log(getNetworth[0],getNetworth[1]);
         receipt = await contracts.leveragePool.rebalance();
+        price = await contracts.leveragePool.buyPrices();
+        console.log("buy prices : ",price[0].toString(),price[1].toString())
         getNetworth = await contracts.leveragePool.getTokenNetworths();
         console.log("Networth : ",getNetworth[0].toString(10),getNetworth[1].toString(10));
         getNetworth = await contracts.leveragePool.getLeverageRebase()

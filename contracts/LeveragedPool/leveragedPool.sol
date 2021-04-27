@@ -153,7 +153,7 @@ contract leveragedPool is leveragedData{
         userLoan = coinInfo.stakePool.borrow(userLoan);
         amount = userLoan.add(amount);
         //98%
-        uint256 amountOut = amount.mulPrice(currentPrice, (coinInfo.id+1)%2)/1020408163265306122;
+        uint256 amountOut = amount.mul(98e16).divPrice(currentPrice,coinInfo.id);
         amount = swap(true,coinInfo.id,amount,amountOut);
         coinInfo.leverageToken.mint(msg.sender,leverageAmount);
     }
@@ -195,18 +195,19 @@ contract leveragedPool is leveragedData{
             coinInfo.leverageToken.calRebaseRatio(totalWorth/coinInfo.rebalanceWorth);
         }else{
             coinInfo.rebalanceWorth = totalWorth/tokenNum;
-            uint256 buyPrice = coinInfo.rebalanceWorth.mul(feeDecimal);
+            uint256 buyPrice = coinInfo.rebalanceWorth;
             uint256 defaultWorth = coinInfo.id == 0 ? uint128(defaultRebalanceWorth) : uint128(defaultRebalanceWorth>>128);
-            coinInfo.bRebase = buyPrice<defaultWorth.mul(feeDecimal-rebaseThreshold) || buyPrice>defaultWorth.mul(feeDecimal+rebaseThreshold);
+            coinInfo.bRebase = buyPrice<defaultWorth.mul(feeDecimal).div(rebaseThreshold) ||
+                 buyPrice>defaultWorth.mul(rebaseThreshold).div(feeDecimal);
         }
         totalWorth = totalWorth/calDecimal;
         uint256 allLoan = totalWorth.mul(coinInfo.leverageRate-feeDecimal)/feeDecimal;
-        uint256 poolBalance = coinInfo.stakePool.poolBalance();
-        if(allLoan <= poolBalance){
+        uint256 poolBorrow = coinInfo.stakePool.borrowLimit(address(this));
+        if(allLoan <= poolBorrow){
             coinInfo.leverageRate = defaultLeverageRatio;
         }else{
-            allLoan = poolBalance;
-            coinInfo.leverageRate = poolBalance.mul(feeDecimal)/totalWorth + feeDecimal;
+            allLoan = poolBorrow;
+            coinInfo.leverageRate = allLoan.mul(feeDecimal)/totalWorth + feeDecimal;
         } 
         uint256 loadInterest = allLoan.mul(insterest)/1e8;
         uint256 newUnderlying = totalWorth+allLoan-loadInterest;

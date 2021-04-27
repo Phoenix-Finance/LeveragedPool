@@ -14,10 +14,10 @@ const IWETH = artifacts.require("IWETH");
 let eth = "0x0000000000000000000000000000000000000000";
 module.exports = {
     before : async function() {
-        let fnx = await IERC20.at("0x187498EC2e9270A088156Eb0543866b9cfdB98fd");
-        let USDC = await IERC20.at("0x5560ce0b661D70B06CEE562293894aFa98a08fF1");
-        let WBTC = await IERC20.at("0x1e4252F6514C9e9910CB1336608294e28D6589E8");
-        let WETH = await IERC20.at("0x8D76559f411eCBB55704087606D265E3cea72ffa");
+        let fnx = await IERC20.at("0xcfD494f8aF60ca86D0936e99dF3904f590c86A57");
+        let USDC = await IERC20.at("0xD5F99d02f2eD78B168cc13067c56DfDa5a3DfaBA");
+        let WBTC = await IERC20.at("0x9be7B0D8c7a2d2559DDd4996B5B80697f168eD33");
+        let WETH = await IERC20.at("0x9d3943c9c360aD3928B8d9EA18fEAac0b651963b");
         let univ2 = "0xAFf49db8dba14f0623C384cCd0B06Eb742dD75Af";
         let routerV2 = await IUniswapV2Router02.at(univ2);
         let addr = await routerV2.factory();
@@ -49,8 +49,8 @@ module.exports = {
             console.log("oracle Address : ",oracle.address)
             console.log("uniswapSync Address : ",sync.address)
         }else{
-            oracle = await FNXOracle.at("0x3DbdeD8c4E401b4DFc3a0da7dAb2ec2709420984");
-            sync = await uniswapSync.at("0x3CbcB87Cef03BF950af580BE988A50be763f57b7");
+            oracle = await FNXOracle.at("0x9841df6b23F13B8cA99e097607a7056c77aFe939");
+            sync = await uniswapSync.at("0x4d2c33874e545115589bEb7775bcd532614258Ea");
         }
         let stakeimple = await stakePool.new({from:account});
         let lToken = await leveragedPool.new({from:account});
@@ -80,7 +80,12 @@ module.exports = {
         let stakepoolA = await stakePool.at(spoolAddress);
         spoolAddress = await factoryInfo.factory.getStakePool(tokenB.address);
         let stakepoolB = await stakePool.at(spoolAddress);
-        await factoryInfo.factory.createLeveragePool(tokenA.address,tokenB.address,3e8,"100000000000000000000","100000000000000000",{from:account});  
+        let decimalsA = await tokenA.decimals()
+        let decimalsB = await tokenB.decimals()
+        let base = new BN(10);
+        let tokenRebase0 = (new BN(100)).mul(base.pow(new BN(decimalsA)));
+        let tokenRebase1 = (new BN(1)).mul(base.pow(new BN(decimalsB-2)));
+        await factoryInfo.factory.createLeveragePool(tokenA.address,tokenB.address,3e8,tokenRebase0,tokenRebase1,{from:account});  
         spoolAddress = await factoryInfo.factory.getLeveragePool(tokenA.address,tokenB.address,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
         let leverageInfo = await lToken.getLeverageInfo();
@@ -103,6 +108,8 @@ module.exports = {
         let stakepoolA = await stakePool.at(spoolAddress);
         spoolAddress = await factoryInfo.factory.getStakePool(eth);
         let stakepoolB = await stakePool.at(spoolAddress);
+
+        console.log("rebase worth :",tokenRebase0.toString(),tokenRebase1.toString())
         await factoryInfo.factory.createLeveragePool(beforeInfo.fnx.address,eth,3e8,"100000000000000000000","100000000000000000",{from:account});  
         spoolAddress = await factoryInfo.factory.getLeveragePool(beforeInfo.fnx.address,eth,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
@@ -132,6 +139,7 @@ module.exports = {
     },
     setOraclePrice: async function(assets,assetPrices,factoryInfo,pair,account){
         await factoryInfo.oracle.setPriceAndUnderlyingPrice(assets,assetPrices,[],[],{from:account});
+        await factoryInfo.uniSync.syncPair(pair,{from:account});
         await factoryInfo.uniSync.syncPair(pair,{from:account});
     }
 }
