@@ -57,7 +57,7 @@ module.exports = {
 
         let lFactory = await leveragedFactroy.new({from:account});
         await lFactory.initFactroryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
-        beforeInfo.univ2,account,1e5,1e5,1e5,5e7,1e7,1e5,{from:account});
+        beforeInfo.univ2,account,1e5,1e5,1e5,15e7,1e7,1e5,{from:account});
         
         /*
         let amount = new BN("1000000000000000000000000000000");
@@ -85,7 +85,7 @@ module.exports = {
         let base = new BN(10);
         let tokenRebase0 = (new BN(100)).mul(base.pow(new BN(decimalsA)));
         let tokenRebase1 = (new BN(1)).mul(base.pow(new BN(decimalsB-2)));
-        await factoryInfo.factory.createLeveragePool(tokenA.address,tokenB.address,3e8,tokenRebase0,tokenRebase1,{from:account});  
+        await factoryInfo.factory.createLeveragePool(tokenA.address,tokenB.address,3e8,1e11,{from:account});  
         spoolAddress = await factoryInfo.factory.getLeveragePool(tokenA.address,tokenB.address,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
         let leverageInfo = await lToken.getLeverageInfo();
@@ -110,7 +110,7 @@ module.exports = {
         let stakepoolB = await stakePool.at(spoolAddress);
 
         console.log("rebase worth :",tokenRebase0.toString(),tokenRebase1.toString())
-        await factoryInfo.factory.createLeveragePool(beforeInfo.fnx.address,eth,3e8,"100000000000000000000","100000000000000000",{from:account});  
+        await factoryInfo.factory.createLeveragePool(beforeInfo.fnx.address,eth,3e8,1e11,{from:account});  
         spoolAddress = await factoryInfo.factory.getLeveragePool(beforeInfo.fnx.address,eth,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
         let leverageInfo = await lToken.getLeverageInfo();

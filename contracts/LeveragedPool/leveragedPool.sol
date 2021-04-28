@@ -52,13 +52,14 @@ contract leveragedPool is leveragedData{
     }
     function setLeveragePoolInfo(address rebaseTokenA,address rebaseTokenB,
         uint256 fees,uint256 _threshold,uint256 rebaseWorth) public onlyOwner {
+        rebasePrices = _getUnderlyingPriceView();
         defaultLeverageRatio = uint64(fees>>192);
         defaultRebalanceWorth = rebaseWorth;
         leverageCoin.leverageRate = defaultLeverageRatio;
-        leverageCoin.rebalanceWorth = uint128(rebaseWorth);
+        leverageCoin.rebalanceWorth = rebaseWorth*calDecimal/rebasePrices[0];
         leverageCoin.leverageToken = IRebaseToken(rebaseTokenA);
         hedgeCoin.leverageRate = defaultLeverageRatio;
-        hedgeCoin.rebalanceWorth = uint128(rebaseWorth>>128);
+        hedgeCoin.rebalanceWorth = rebaseWorth*calDecimal/rebasePrices[1];
         hedgeCoin.leverageToken = IRebaseToken(rebaseTokenB);
         buyFee = uint64(fees);
         sellFee = uint64(fees>>64);
@@ -66,7 +67,7 @@ contract leveragedPool is leveragedData{
         rebaseThreshold = uint128(_threshold);
         liquidateThreshold = uint128(_threshold>>128);
 
-        rebasePrices = _getUnderlyingPriceView();
+
     }
     function getDefaultLeverageRate()public view returns (uint256){
         return defaultLeverageRatio;
@@ -190,13 +191,13 @@ contract leveragedPool is leveragedData{
         uint256 oldUnderlying = underlyingBalance(coinInfo.id).mulPrice(currentPrice,coinInfo.id)/calDecimal;
         totalWorth = _totalWorth(coinInfo,currentPrice);
         if (coinInfo.bRebase){
-            coinInfo.rebalanceWorth = coinInfo.id == 0 ? uint128(defaultRebalanceWorth) : uint128(defaultRebalanceWorth>>128);
+            coinInfo.rebalanceWorth = defaultRebalanceWorth*calDecimal/currentPrice[coinInfo.id];
             coinInfo.bRebase = false;
             coinInfo.leverageToken.calRebaseRatio(totalWorth/coinInfo.rebalanceWorth);
         }else{
             coinInfo.rebalanceWorth = totalWorth/tokenNum;
             uint256 buyPrice = coinInfo.rebalanceWorth;
-            uint256 defaultWorth = coinInfo.id == 0 ? uint128(defaultRebalanceWorth) : uint128(defaultRebalanceWorth>>128);
+            uint256 defaultWorth = defaultRebalanceWorth*calDecimal/currentPrice[coinInfo.id];
             coinInfo.bRebase = buyPrice<defaultWorth.mul(feeDecimal).div(rebaseThreshold) ||
                  buyPrice>defaultWorth.mul(rebaseThreshold).div(feeDecimal);
         }

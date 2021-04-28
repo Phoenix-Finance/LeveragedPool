@@ -71,7 +71,7 @@ contract leveragedFactroy is Ownable{
                 interestRate = _interestRate;
              }
     function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
-        uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth)external 
+        uint256 leverageRebaseWorth)external 
         onlyOwner returns (address payable _leveragePool){
         bytes32 poolKey = getPairHash(tokenA,tokenB,leverageRatio);
         _leveragePool = leveragePoolMap[poolKey];
@@ -79,7 +79,7 @@ contract leveragedFactroy is Ownable{
             _leveragePool = createLeveragePool_sub(tokenA,tokenB);
             leveragePoolMap[poolKey] = _leveragePool;
             leveragePoolList.push(_leveragePool);
-            setLeveragePoolInfo_sub(_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth,hedgeRebaseWorth);
+            setLeveragePoolInfo_sub(_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth);
         }
     }
     function createLeveragePool_sub(address _stakePoolA,address _stakePoolB)internal returns (address payable _leveragePool){
@@ -94,7 +94,7 @@ contract leveragedFactroy is Ownable{
         IStakePool(_stakePoolB).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
     }
     function setLeveragePoolInfo_sub(address payable _leveragePool,address tokenA,address tokenB,uint64 leverageRatio,
-        uint128 leverageRebaseWorth,uint128 hedgeRebaseWorth) internal {
+        uint256 leverageRebaseWorth) internal {
         string memory token0 = (tokenA == address(0)) ? baseCoinName : IERC20(tokenA).symbol();
         string memory token1 = (tokenB == address(0)) ? baseCoinName : IERC20(tokenB).symbol();
         string memory suffix = leverageSuffix(leverageRatio);
@@ -104,7 +104,7 @@ contract leveragedFactroy is Ownable{
         ILeveragedPool newPool = ILeveragedPool(_leveragePool);
         newPool.setLeveragePoolInfo(createRebaseToken(_leveragePool,tokenA,leverageName),
             createRebaseToken(_leveragePool,tokenB,hedgeName),uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
-            rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth+(uint256(hedgeRebaseWorth)<<128));
+            rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth);
     }
     function createRebaseToken(address leveragePool,address token,string memory name)internal returns(address){
         fnxProxy newToken = new fnxProxy(rebaseTokenImpl);
