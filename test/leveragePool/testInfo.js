@@ -85,7 +85,7 @@ module.exports = {
         let base = new BN(10);
         let tokenRebase0 = (new BN(100)).mul(base.pow(new BN(decimalsA)));
         let tokenRebase1 = (new BN(1)).mul(base.pow(new BN(decimalsB-2)));
-        await factoryInfo.factory.createLeveragePool(tokenA.address,tokenB.address,3e8,1e11,{from:account});  
+        await factoryInfo.factory.createLeveragePool(tokenA.address,tokenB.address,3e8,1e10,{from:account});  
         spoolAddress = await factoryInfo.factory.getLeveragePool(tokenA.address,tokenB.address,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
         let leverageInfo = await lToken.getLeverageInfo();

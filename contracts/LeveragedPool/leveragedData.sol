@@ -35,4 +35,5 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
 
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
+    event DebugEvent(address indexed from,uint256 value0,uint256 value1,uint256 value2);
 }

@@ -46,13 +46,13 @@ contract stakePool is stakePoolData{
         emit Borrow(msg.sender,_poolToken,amount,_loan);
         return _loan;
     }
-    function borrowAndInterest(uint256 amount) public addressPermissionAllowed(msg.sender,allowBorrow) returns(uint256){
-        loanAccountMap[msg.sender] = loanAccountMap[msg.sender].add(amount);
-        uint256 _loan = amount.sub(loanAccountMap[msg.sender].mul(_interestRate)/calDecimal);
-        _totalSupply = _totalSupply.add(amount-_loan);
-        _redeem(msg.sender,_poolToken,_loan);
+    function borrowAndInterest(uint256 amount) public addressPermissionAllowed(msg.sender,allowBorrow){
+        //l1*r + (l0-l1) = -amount
+        uint256 _loan = loanAccountMap[msg.sender].add(amount).mul(calDecimal)/(calDecimal-_interestRate);
+        loanAccountMap[msg.sender] = _loan;
+        _totalSupply = _totalSupply.add(_loan.mul(_interestRate).div(calDecimal));
+        _redeem(msg.sender,_poolToken,amount);
         emit Borrow(msg.sender,_poolToken,amount,_loan);
-        return _loan;
     }
     function repay(uint256 amount,bool bAll) public payable addressPermissionAllowed(msg.sender,allowRepay) {
         amount = getPayableAmount(_poolToken,amount);
@@ -64,16 +64,13 @@ contract stakePool is stakePoolData{
         }
         emit Repay(msg.sender,_poolToken,amount,loanAccountMap[msg.sender]);
     }
-    function repayAndInterest(uint256 amount) public payable addressPermissionAllowed(msg.sender,allowRepay) returns(uint256){
+    function repayAndInterest(uint256 amount) public payable addressPermissionAllowed(msg.sender,allowRepay){
         amount = getPayableAmount(_poolToken,amount);
-        uint256 repayAmount = amount.mul(calDecimal).sub(loanAccountMap[msg.sender].mul(_interestRate))/(calDecimal-_interestRate);
-        if (repayAmount > amount){
-            repayAmount = amount;
-        }
-        loanAccountMap[msg.sender] = loanAccountMap[msg.sender].sub(repayAmount);
-        _totalSupply = _totalSupply.add(amount-repayAmount);
-        emit RepayAndInterest(msg.sender,_poolToken,repayAmount,amount-repayAmount,loanAccountMap[msg.sender]);
-        return repayAmount;
+        //l1*r + (l0-l1) = amount
+        uint256 _loan = loanAccountMap[msg.sender].sub(amount).mul(calDecimal)/(calDecimal-_interestRate);
+        loanAccountMap[msg.sender] = _loan;
+        _totalSupply = _totalSupply.add(_loan.mul(_interestRate).div(calDecimal));
+        emit RepayAndInterest(msg.sender,_poolToken,amount,_loan);
     }
     function FPTTotalSuply()public view returns (uint256){
         return _FPTCoin.totalSupply();

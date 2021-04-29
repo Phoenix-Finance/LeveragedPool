@@ -8,8 +8,8 @@ interface IStakePool {
     function poolBalance() external view returns (uint256);
     function borrowLimit(address account)external view returns (uint256);
     function borrow(uint256 amount) external returns(uint256);
-    function borrowAndInterest(uint256 amount) external returns(uint256);
+    function borrowAndInterest(uint256 amount) external;
     function repay(uint256 amount,bool bAll) external payable;
-    function repayAndInterest(uint256 amount) external payable returns(uint256);
+    function repayAndInterest(uint256 amount) external payable;
     function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) external;
 }
