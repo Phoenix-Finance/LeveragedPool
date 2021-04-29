@@ -207,12 +207,18 @@ contract leveragedPool is leveragedData{
         } 
         uint256 oldUnderlying = underlyingBalance(coinInfo.id).mulPrice(currentPrice,coinInfo.id)/calDecimal;
         uint256 oldLoan = coinInfo.stakePool.loan(address(this));
-        emit DebugEvent(address(0x1111),oldUnderlying,oldLoan,coinInfo.id);
+        coinInfo.leverageRate = defaultLeverageRatio;
         //allLoan = allworth*(l-1)/(1+lr-2r)
         uint256 allLoan = oldUnderlying.sub(oldLoan).mul(coinInfo.leverageRate-feeDecimal).mul(feeDecimal);
         allLoan = allLoan/(feeDecimal*feeDecimal+coinInfo.leverageRate*insterest-2*feeDecimal*insterest);
+        uint256 poolBorrow = coinInfo.stakePool.borrowLimit(address(this));
+        if(allLoan > poolBorrow){
+            allLoan = poolBorrow;
+            // l = loan(1-r)/(allworth-loan*r) + 1
+            uint div = oldUnderlying.sub(oldLoan).mul(feeDecimal).sub(allLoan.mul(insterest));
+            coinInfo.leverageRate = allLoan.mul((feeDecimal-insterest)*feeDecimal)/div+feeDecimal;
+        }
         totalWorth = allLoan.mul((feeDecimal-insterest)*feeDecimal)/(coinInfo.leverageRate-feeDecimal)/feeDecimal;
-        emit DebugEvent(address(0x2222),allLoan,totalWorth,coinInfo.id);
         //rebasetoken : amount * rebalanceWorth * (leverageRate-1) = allLoan
         if (coinInfo.bRebase){
             coinInfo.rebalanceWorth = defaultRebalanceWorth*calDecimal/currentPrice[coinInfo.id];
@@ -223,15 +229,8 @@ contract leveragedPool is leveragedData{
             uint256 defaultWorth = defaultRebalanceWorth*calDecimal/currentPrice[coinInfo.id];
             coinInfo.bRebase = coinInfo.rebalanceWorth<defaultWorth.mul(feeDecimal).div(rebaseThreshold);
         }
-        uint256 poolBorrow = coinInfo.stakePool.borrowLimit(address(this));
-        if(allLoan <= poolBorrow){
-            coinInfo.leverageRate = defaultLeverageRatio;
-        }else{
-            allLoan = poolBorrow;
-            coinInfo.leverageRate = allLoan.mul(feeDecimal-insterest)/totalWorth + feeDecimal;
-        } 
+ 
         uint256 newUnderlying = totalWorth+allLoan;
-        emit DebugEvent(address(0x3333),oldUnderlying,newUnderlying,coinInfo.id);
         if(oldUnderlying>newUnderlying){
             return (0,oldUnderlying-newUnderlying);
         }else{
