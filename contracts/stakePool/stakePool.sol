@@ -6,10 +6,17 @@ import "./stakePoolData.sol";
 contract stakePool is stakePoolData{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) public{
+    function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) public onlyOwner{
         _FPTCoin = IFPTCoin(fptToken);
         _poolToken = stakeToken;
         _interestRate = interestrate;
+    }
+    function poolInterest()public view returns (uint256){
+        if(_totalSupply == 0){
+            return 0;
+        }
+        uint256 balance = poolBalance();
+        return (_totalSupply.sub(balance)).mul(_interestRate)/_totalSupply;
     }
     function update() public onlyOwner versionUpdate(){
     }
@@ -19,7 +26,7 @@ contract stakePool is stakePoolData{
     function interestRate()public view returns (uint64){
         return _interestRate;
     }
-    function setInterestRate(uint64 interestrate) public{
+    function setInterestRate(uint64 interestrate) public onlyOwner{
         _interestRate = interestrate;
     }
     function totalSupply()public view returns (uint256){
@@ -40,11 +47,11 @@ contract stakePool is stakePoolData{
     }
     function borrow(uint256 amount) public addressPermissionAllowed(msg.sender,allowBorrow) returns(uint256) {
         loanAccountMap[msg.sender] = loanAccountMap[msg.sender].add(amount);
-        uint256 _loan = amount.mul((calDecimal-_interestRate))/calDecimal;
-        _totalSupply = _totalSupply.add(amount-_loan);
-        _redeem(msg.sender,_poolToken,_loan);
-        emit Borrow(msg.sender,_poolToken,amount,_loan);
-        return _loan;
+        uint256 reply = amount.mul((calDecimal-_interestRate))/calDecimal;
+        _totalSupply = _totalSupply.add(amount-reply);
+        _redeem(msg.sender,_poolToken,reply);
+        emit Borrow(msg.sender,_poolToken,reply,amount);
+        return reply;
     }
     function borrowAndInterest(uint256 amount) public addressPermissionAllowed(msg.sender,allowBorrow){
         //l1*r + (l0-l1) = -amount

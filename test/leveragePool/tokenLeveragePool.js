@@ -77,12 +77,12 @@ contract('leveragedPool', function (accounts){
         console.log("Leverage fee : ",result[0].toString(),result[1].toString(),result[2].toString());
         let netWroth = await contracts.leveragePool.getTokenNetworths();
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
-        await contracts.leveragePool.rebalance();
+        await factoryInfo.factory.rebalanceAll();
         await tokenA.approve(contracts.stakepool[0].address,"1000000000000000000000000");
         await contracts.stakepool[0].stake("1000000000000000000000000");
         await tokenB.approve(contracts.stakepool[1].address,"1000000000000000000000000");
         await contracts.stakepool[1].stake("1000000000000000000000000");
-        await contracts.leveragePool.rebalance();
+        await factoryInfo.factory.rebalanceAll();
         await leverageCheck.buyLeverage(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
         await logInfo(tokenA,tokenB,contracts);
         await leverageCheck.buyLeverage(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
@@ -94,31 +94,25 @@ contract('leveragedPool', function (accounts){
         prices = [priceA,priceB.sub(priceB.div(new BN(10)))]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);       
         await logInfo(tokenA,tokenB,contracts);
-        let receipt = await contracts.leveragePool.rebalance();
+        await factoryInfo.factory.rebalanceAll();
         await logInfo(tokenA,tokenB,contracts);
-        let events = eventDecoder.decodeTxEvents(receipt);
-        console.log(events);
-        return;
         prices = [priceA,priceB.sub(priceB.div(new BN(5)))]
         await logInfo(tokenA,tokenB,contracts);
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]); 
         await logInfo(tokenA,tokenB,contracts);
-        receipt = await contracts.leveragePool.rebalance();
+        await factoryInfo.factory.rebalanceAll();
         await logInfo(tokenA,tokenB,contracts);
-        receipt = await contracts.leveragePool.rebalance();
+        await factoryInfo.factory.rebalanceAll();
         await logInfo(tokenA,tokenB,contracts);
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]); 
         await logInfo(tokenA,tokenB,contracts);
-        getNetworth = await contracts.leveragePool.getEnableLiquidate()
+        getNetworth = await contracts.leveragePool.getEnableRebalanceAndLiquidate()
         console.log(getNetworth[0],getNetworth[1]);
-        if(getNetworth[0]){
-            await contracts.leveragePool.liquidateLeverage();
+        if(getNetworth[0] || getNetworth[1]){
+            await contracts.leveragePool.rebalanceAndLiquidate();
             let rebaseBalance = await contracts.rebaseToken[0].balanceOf(accounts[0]);
             console.log(rebaseBalance.toString());
-        }
-        if(getNetworth[1]){
-            await contracts.leveragePool.liquidateHedge();
-            let rebaseBalance = await contracts.rebaseToken[1].balanceOf(accounts[0]);
+            rebaseBalance = await contracts.rebaseToken[1].balanceOf(accounts[0]);
             console.log(rebaseBalance.toString());
         }
         aBalance = await tokenA.balanceOf(contracts.leveragePool.address);

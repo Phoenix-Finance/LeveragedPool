@@ -6,7 +6,7 @@ pragma solidity =0.5.16;
  */
 import "../modules/SafeMath.sol";
 import "../modules/Managerable.sol";
-import "../modules/Ownable.sol";
+import "./leverageFactoryData.sol";
 import "../proxy/fnxProxy.sol";
 import "../leveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
@@ -17,42 +17,13 @@ import "../rebaseToken/IRebaseToken.sol";
  * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
  *
  */
-contract leveragedFactroy is Ownable{
+contract leverageFactory is leverageFactoryData{
     using SafeMath for uint256;
-    mapping(address=>address payable) public stakePoolMap;
-    mapping(bytes32=>address payable) public leveragePoolMap;
 
-    string public baseCoinName;
-
-    address public stakePoolImpl;
-
-    address public leveragePoolImpl;
-
-    address public FPTCoinImpl;
-
-    address public rebaseTokenImpl;
-
-    address public fnxOracle;
-    address public uniswap;
-
-    address payable public feeAddress;
-
-    //feeDecimals = 8; 
-    uint64 public buyFee;
-    uint64 public sellFee;
-    uint64 public rebalanceFee;
-    uint64 public interestRate;
-    uint64 public rebaseThreshold;
-    uint64 public liquidateThreshold;
-
-
-    address payable[] public fptCoinList;
-    address payable[] public stakePoolList;
-    address payable[] public leveragePoolList;
     constructor() public {
 
     } 
-    function initFactroryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
+    function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _uniswap,address payable _feeAddress,
              uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestRate) public onlyOwner{
                 baseCoinName = _baseCoinName;
@@ -76,34 +47,42 @@ contract leveragedFactroy is Ownable{
         bytes32 poolKey = getPairHash(tokenA,tokenB,leverageRatio);
         _leveragePool = leveragePoolMap[poolKey];
         if(_leveragePool == address(0)){
-            _leveragePool = createLeveragePool_sub(tokenA,tokenB);
+            _leveragePool = createLeveragePool_sub(tokenA,tokenB,leverageRatio,leverageRebaseWorth);
             leveragePoolMap[poolKey] = _leveragePool;
             leveragePoolList.push(_leveragePool);
-            setLeveragePoolInfo_sub(_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth);
+            
         }
     }
-    function createLeveragePool_sub(address _stakePoolA,address _stakePoolB)internal returns (address payable _leveragePool){
-        _stakePoolA = getStakePool(_stakePoolA);
-        _stakePoolB = getStakePool(_stakePoolB);
+    function createLeveragePool_sub(address tokenA,address tokenB,uint64 leverageRatio,
+        uint256 leverageRebaseWorth)internal returns (address payable _leveragePool){
+        address _stakePoolA = getStakePool(tokenA);
+        address _stakePoolB = getStakePool(tokenB);
         require(_stakePoolA!=address(0) && _stakePoolB!=address(0),"Stake pool is not created");
         fnxProxy newPool = new fnxProxy(leveragePoolImpl);
         _leveragePool = address(uint160(address(newPool)));
         ILeveragedPool pool = ILeveragedPool(_leveragePool);
-        pool.setLeveragePoolAddress(feeAddress,_stakePoolA,_stakePoolB,fnxOracle,uniswap);
         IStakePool(_stakePoolA).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
         IStakePool(_stakePoolB).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
+        setLeveragePoolInfo_sub(_stakePoolA,_stakePoolB,_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth);
+        pool.modifyPermission(address(this),0xFFFFFFFFFFFFFFFF);
+        
     }
-    function setLeveragePoolInfo_sub(address payable _leveragePool,address tokenA,address tokenB,uint64 leverageRatio,
+    function setLeveragePoolInfo_sub(address _stakePoolA,address _stakePoolB,address payable _leveragePool,
+        address tokenA,address tokenB,uint64 leverageRatio,
         uint256 leverageRebaseWorth) internal {
-        string memory token0 = (tokenA == address(0)) ? baseCoinName : IERC20(tokenA).symbol();
-        string memory token1 = (tokenB == address(0)) ? baseCoinName : IERC20(tokenB).symbol();
-        string memory suffix = leverageSuffix(leverageRatio);
-
-        string memory leverageName = string(abi.encodePacked("LPT_",token0,uint8(95),token1,suffix));
-        string memory hedgeName = string(abi.encodePacked("HPT_",token1,uint8(95),token0,suffix));
+        address rebaseTokenA;
+        address rebaseTokenB;
+        {
+            string memory token1 = (tokenB == address(0)) ? baseCoinName : IERC20(tokenB).symbol();
+            string memory suffix = leverageSuffix(leverageRatio);
+            string memory leverageName = string(abi.encodePacked(token1,"_BULL",suffix));
+            string memory hedgeName = string(abi.encodePacked(token1,"_BEAR",suffix));
+            rebaseTokenA = createRebaseToken(_leveragePool,tokenA,leverageName);
+            rebaseTokenB = createRebaseToken(_leveragePool,tokenB,hedgeName);
+        }
         ILeveragedPool newPool = ILeveragedPool(_leveragePool);
-        newPool.setLeveragePoolInfo(createRebaseToken(_leveragePool,tokenA,leverageName),
-            createRebaseToken(_leveragePool,tokenB,hedgeName),uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
+        newPool.setLeveragePoolInfo(feeAddress,_stakePoolA,_stakePoolB,fnxOracle,uniswap,rebaseTokenA,rebaseTokenB,
+            uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
             rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth);
     }
     function createRebaseToken(address leveragePool,address token,string memory name)internal returns(address){
@@ -111,6 +90,7 @@ contract leveragedFactroy is Ownable{
         IRebaseToken leverageToken = IRebaseToken(address(newToken));
         leverageToken.modifyPermission(leveragePool,0xFFFFFFFFFFFFFFFF);
         leverageToken.changeTokenName(name,name,token);
+        leverageToken.setTimeLimitation(60);
         return address(newToken);
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
@@ -129,7 +109,7 @@ contract leveragedFactroy is Ownable{
     function getAllLeveragePool()external view returns (address payable[] memory){
         return leveragePoolList;
     }
-    function rebalanceAll()external onlyOwner {
+    function rebalanceAll()external addressPermissionAllowed(msg.sender,allowRebalance) {
         uint256 len = leveragePoolList.length;
         for(uint256 i=0;i<len;i++){
             ILeveragedPool(leveragePoolList[i]).rebalance();

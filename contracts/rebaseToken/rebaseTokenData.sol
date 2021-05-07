@@ -3,7 +3,8 @@ import "../modules/Ownable.sol";
 import "../ERC20/safeErc20.sol";
 import "../modules/versionUpdater.sol";
 import "../modules/AddressPermission.sol";
-contract rebaseTokenData is Ownable,versionUpdater,AddressPermission{
+import "../modules/timeLimitation.sol";
+contract rebaseTokenData is Ownable,versionUpdater,AddressPermission,timeLimitation{
     uint256 constant public implementationVersion = 0;
     uint256 constant public allowRebalance = 1;
     uint256 constant public allowNewErc20 = 1<<1;

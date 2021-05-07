@@ -170,7 +170,7 @@ contract rebaseToken is rebaseTokenData {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue));
         return true;
     }
-    function burn(address account,uint256 amount) public addressPermissionAllowed(msg.sender,allowBurn) returns (bool){
+    function burn(address account,uint256 amount) public addressPermissionAllowed(msg.sender,allowBurn) OutLimitation(uint256(account)) returns (bool){
         _burn(account, amount);
         return true;
     }
@@ -209,6 +209,9 @@ contract rebaseToken is rebaseTokenData {
     function _transfer(address sender, address recipient, uint256 amount) internal {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
+        if (amount >= 0.1 ether){
+            setItemTimeLimitation(uint256(recipient));
+        }
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];
         uint256 realAmount = amount.mul(rebaseDecimal)/info.rebaseRatio;
         _subBalance(info,sender,realAmount);
@@ -227,6 +230,9 @@ contract rebaseToken is rebaseTokenData {
      */
     function _mint(address account, uint256 amount) internal {
         require(account != address(0), "ERC20: mint to the zero address");
+        if (amount >= 0.1 ether){
+            setItemTimeLimitation(uint256(account));
+        }
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];
         uint256 realAmount = amount.mul(rebaseDecimal)/info.rebaseRatio;
         info._totalSupply = info._totalSupply.add(realAmount);

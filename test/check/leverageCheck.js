@@ -40,7 +40,7 @@ module.exports = {
         assert(loan.eq(new BN(borrowEvent.loan)),loan.toString(10)+","+borrowEvent.loan+ " : leverage loan check failed!");
         let rate = await contracts.stakepool[index].interestRate();
         let borrow = loan.mul(this.feeDecimal.sub(rate)).div(this.feeDecimal);
-        assert(borrow.eq(new BN(borrowEvent.borrow)),borrow.toString(10)+","+borrowEvent.borrow+ " : leverage borrow check failed!");
+        assert(borrow.eq(new BN(borrowEvent.reply)),borrow.toString(10)+","+borrowEvent.reply+ " : leverage borrow check failed!");
         let swap = this.findEvent(events,"Swap",0);
         console.log(swap);
         let swapFrom = borrow.add(amount).sub(fee);

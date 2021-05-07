@@ -12,7 +12,7 @@ contract stakePoolData is ImportIFPTCoin,versionUpdater,ReentrancyGuard,AddressP
     address internal _poolToken;
     uint64 internal _interestRate;
     mapping (address => uint256) internal loanAccountMap;
-    event Borrow(address indexed from,address indexed token,uint256 borrow,uint256 loan);
+    event Borrow(address indexed from,address indexed token,uint256 reply,uint256 loan);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
     event Stake(address indexed from,address indexed token,uint256 amount,uint256 mintAmount);
     event Unstake(address indexed from,address indexed token,uint256 amount,uint256 burnAmount);

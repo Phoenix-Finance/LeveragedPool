@@ -10,6 +10,7 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
     uint256 constant public implementationVersion = 0;
     uint256 constant internal calDecimal = 1e18; 
     uint256 constant internal feeDecimal = 1e8; 
+    uint256 constant public allowRebalance = 1;
     struct leverageInfo {
         uint8 id;
         bool bRebase;
@@ -35,5 +36,4 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
 
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
-    event DebugEvent(address indexed from,uint256 value0,uint256 value1,uint256 value2);
 }

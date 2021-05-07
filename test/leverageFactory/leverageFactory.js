@@ -8,7 +8,7 @@ const IERC20 = artifacts.require("IERC20");
 const FNXOracle = artifacts.require("FNXOracle");
 const IUniswapV2Router02 = artifacts.require("IUniswapV2Router02");
 const IUniswapV2Factory = artifacts.require("IUniswapV2Factory");
-const leveragedFactroy = artifacts.require("leveragedFactroy");
+const leverageFactory = artifacts.require("leverageFactory");
 let eth = "0x0000000000000000000000000000000000000000";
 contract('leveragedPool', function (accounts){
     let fnx;
@@ -25,7 +25,7 @@ contract('leveragedPool', function (accounts){
         let wethaddr = await routerV2.WETH();
         weth = await IERC20.at(wethaddr);
     }); 
-    it('leveragedFactroy normal tests', async function (){
+    it('leverageFactory normal tests', async function (){
 
         let rTokenImply = await rebaseToken.new();
         let fptCoin = await FPTCoin.new();
@@ -36,8 +36,8 @@ contract('leveragedPool', function (accounts){
         let stakeimple = await stakePool.new();
         let lToken = await leveragedPool.new();
 
-        let lFactory = await leveragedFactroy.new();
-        await lFactory.initFactroryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
+        let lFactory = await leverageFactory.new();
+        await lFactory.initFactoryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
             univ2,accounts[1],1e5,1e5,1e5,5e6,1e5);
         let fnxCoin = await FPTCoin.new();
         fnxCoin.changeTokenName("Finnexus coin","FNX");

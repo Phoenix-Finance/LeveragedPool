@@ -5,7 +5,7 @@ const rebaseToken = artifacts.require("rebaseToken");
 const stakePool = artifacts.require("stakePool");
 const FPTCoin = artifacts.require("FPTCoin");
 const FNXOracle = artifacts.require("FNXOracle");
-const leveragedFactroy = artifacts.require("leveragedFactroy");
+const leverageFactory = artifacts.require("leverageFactory");
 const IUniswapV2Router02 = artifacts.require("IUniswapV2Router02");
 const IUniswapV2Factory = artifacts.require("IUniswapV2Factory");
 const uniswapSync = artifacts.require("uniswapSync");
@@ -33,8 +33,8 @@ module.exports = {
         let stakeimple = await stakePool.new({from:account});
         let lToken = await leveragedPool.new({from:account});
 
-        let lFactory = await leveragedFactroy.new({from:account});
-        await lFactory.initFactroryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
+        let lFactory = await leverageFactory.new({from:account});
+        await lFactory.initFactoryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
         beforeInfo.univ2,account,1e5,1e5,1e5,5e7,1e7,1e5,{from:account});
         let sync = await uniswapSync.at("0xf08D2CB5eDa498a733b5DD5d570bF75Ab311A14c");
         /*

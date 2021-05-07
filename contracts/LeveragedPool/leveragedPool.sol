@@ -42,25 +42,22 @@ contract leveragedPool is leveragedData{
     function getLeverageFee()public view returns(uint256,uint256,uint256){
         return (buyFee,sellFee,rebalanceFee);
     }
-    function setLeveragePoolAddress(address payable _feeAddress,address leveragePool,address hedgePool,address oracle,address swapRouter)public onlyOwner{
+    function setLeveragePoolInfo(address payable _feeAddress,address leveragePool,address hedgePool,
+        address oracle,address swapRouter,address rebaseTokenA,address rebaseTokenB,
+        uint256 fees,uint256 _threshold,uint256 rebaseWorth) onlyOwner public{
+            setLeveragePoolAddress(_feeAddress,leveragePool,hedgePool,oracle,swapRouter);
+            setLeveragePoolInfo_sub(rebaseTokenA,rebaseTokenB,fees,_threshold,rebaseWorth);
+        }
+    function setLeveragePoolAddress(address payable _feeAddress,address leveragePool,address hedgePool,
+        address oracle,address swapRouter)internal{
         feeAddress = _feeAddress;
         _oracle = IFNXOracle(oracle);
         IUniswap = IUniswapV2Router02(swapRouter);
         setStakePool(leverageCoin,0,leveragePool);
         setStakePool(hedgeCoin,1,hedgePool);
     }
-    function setStakePool(leverageInfo storage coinInfo,uint8 id,address stakePool) internal{
-        coinInfo.id = id;
-        coinInfo.stakePool = IStakePool(stakePool);
-        coinInfo.token = coinInfo.stakePool.poolToken();
-        if(coinInfo.token != address(0)){
-            IERC20 oToken = IERC20(coinInfo.token);
-            oToken.safeApprove(address(IUniswap),uint256(-1));
-            oToken.safeApprove(stakePool,uint256(-1));
-        }
-    }
-    function setLeveragePoolInfo(address rebaseTokenA,address rebaseTokenB,
-        uint256 fees,uint256 _threshold,uint256 rebaseWorth) public onlyOwner {
+    function setLeveragePoolInfo_sub(address rebaseTokenA,address rebaseTokenB,
+        uint256 fees,uint256 _threshold,uint256 rebaseWorth) internal {
         rebasePrices = _getUnderlyingPriceView();
         defaultLeverageRatio = uint64(fees>>192);
         defaultRebalanceWorth = rebaseWorth;
@@ -78,6 +75,17 @@ contract leveragedPool is leveragedData{
 
 
     }
+    function setStakePool(leverageInfo storage coinInfo,uint8 id,address stakePool) internal{
+        coinInfo.id = id;
+        coinInfo.stakePool = IStakePool(stakePool);
+        coinInfo.token = coinInfo.stakePool.poolToken();
+        if(coinInfo.token != address(0)){
+            IERC20 oToken = IERC20(coinInfo.token);
+            oToken.safeApprove(address(IUniswap),uint256(-1));
+            oToken.safeApprove(stakePool,uint256(-1));
+        }
+    }
+
     function getDefaultLeverageRate()public view returns (uint256){
         return defaultLeverageRatio;
     }
@@ -252,7 +260,7 @@ contract leveragedPool is leveragedData{
         }
         return buyAmounts;
     }
-    function rebalance() getUnderlyingPrice public {
+    function rebalance() getUnderlyingPrice addressPermissionAllowed(msg.sender,allowRebalance) public {
         (uint256 buyLev,uint256 sellLev) = _settle(leverageCoin);
         (uint256 buyHe,uint256 sellHe) = _settle(hedgeCoin);
         rebasePrices = currentPrice;
@@ -281,13 +289,19 @@ contract leveragedPool is leveragedData{
             _repayAndInterest(hedgeCoin,sellHe);
         }
     }
-    function liquidateLeverage() public {
-        _liquidate(leverageCoin);
+    function rebalanceAndLiquidate() public getUnderlyingPrice {
+        if(checkLiquidate(leverageCoin,currentPrice,liquidateThreshold)){
+            _liquidate(leverageCoin);
+        }else if(checkLiquidate(hedgeCoin,currentPrice,liquidateThreshold)){
+            _liquidate(hedgeCoin);
+        }else if(checkLiquidate(leverageCoin,currentPrice,liquidateThreshold*3) || 
+            checkLiquidate(hedgeCoin,currentPrice,liquidateThreshold*3)){
+            rebalance();
+        }else{
+            require(false, "Liquidate: current price is not under the threshold!");
+        }
     }
-    function liquidateHedge() public {
-        _liquidate(hedgeCoin);
-    }
-    function _liquidate(leverageInfo storage coinInfo) canLiquidate(coinInfo)  internal{
+    function _liquidate(leverageInfo storage coinInfo) internal{
         //all selled
         uint256 amount = swap(false,coinInfo.id,underlyingBalance(coinInfo.id),0);
         (uint256 leftAmount,uint256 fee) = getFees(rebalanceFee,amount);
@@ -382,25 +396,19 @@ contract leveragedPool is leveragedData{
         uint256[]memory prices = oraclegetPrices(assets);
         return [prices[0],prices[1]];
     }
-    function getEnableLiquidate()public view returns (bool,bool){
+    function getEnableRebalanceAndLiquidate()public view returns (bool,bool){
         uint256[2]memory prices = _getUnderlyingPriceView();
-        uint256 price0 = prices[0]*(calDecimal+calDecimal/100)/calDecimal;
-        uint256 price1 = prices[1]*(calDecimal+calDecimal/100)/calDecimal;
-        return (checkLiquidate(leverageCoin,[prices[0],price1]),
-                checkLiquidate(hedgeCoin,[price0,prices[1]]));
+        uint256 threshold = liquidateThreshold*31e7/feeDecimal;
+        return (checkLiquidate(leverageCoin,prices,threshold),
+                checkLiquidate(hedgeCoin,prices,threshold));
     }
-    function checkLiquidate(leverageInfo memory coinInfo,uint256[2]memory prices) internal view returns(bool){
+    function checkLiquidate(leverageInfo memory coinInfo,uint256[2]memory prices,uint256 threshold) internal view returns(bool){
         if(coinInfo.leverageToken.totalSupply() == 0){
             return false;
         }
         //3CP < RP*(2+liquidateThreshold)
         return coinInfo.leverageRate.mulPrice(prices,coinInfo.id) < 
-            (coinInfo.leverageRate-feeDecimal+liquidateThreshold).mulPrice(rebasePrices,coinInfo.id);
-    }
-    modifier canLiquidate(leverageInfo memory coinInfo){
-        currentPrice = _getUnderlyingPriceView();
-        require(checkLiquidate(coinInfo,currentPrice),"Liquidate: current price is not under the threshold!");
-        _;
+            (coinInfo.leverageRate-feeDecimal+threshold).mulPrice(rebasePrices,coinInfo.id);
     }
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'leveragedPool: EXPIRED');
