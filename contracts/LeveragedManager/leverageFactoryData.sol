@@ -12,7 +12,11 @@ import "../modules/versionUpdater.sol";
  *
  */
 contract leverageFactoryData is AddressPermission,versionUpdater{
-    uint256 constant public implementationVersion = 0;
+    uint256 constant internal currentVersion = 0;
+    function implementationVersion() public pure returns (uint256) 
+    {
+        return currentVersion;
+    }
     mapping(address=>address payable) public stakePoolMap;
     mapping(bytes32=>address payable) public leveragePoolMap;
     uint256 constant public allowRebalance = 1;

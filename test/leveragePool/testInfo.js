@@ -57,11 +57,8 @@ module.exports = {
         let lToken = await leveragedPool.new({from:account});
 
         let lFactory = await leverageFactory.new({from:account});
-        console.log("leverageFactory.new : ",lFactory.address);
         let proxy = await fnxProxy.new(lFactory.address,{from:account});
-        console.log("fnxProxy.new : ",proxy.address);
         lFactory = await leverageFactory.at(proxy.address);
-        console.log("leverageFactory.at : ",lFactory.address);
         await lFactory.initFactoryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
         beforeInfo.univ2,account,1e5,1e5,1e5,15e7,1e7,1e5,{from:account});
         await lFactory.modifyPermission(account,0xFFFFFFFF,{from:account});

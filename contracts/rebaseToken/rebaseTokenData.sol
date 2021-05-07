@@ -5,7 +5,11 @@ import "../modules/versionUpdater.sol";
 import "../modules/AddressPermission.sol";
 import "../modules/timeLimitation.sol";
 contract rebaseTokenData is Ownable,versionUpdater,AddressPermission,timeLimitation{
-    uint256 constant public implementationVersion = 0;
+    uint256 constant internal currentVersion = 0;
+    function implementationVersion() public pure returns (uint256) 
+    {
+        return currentVersion;
+    }
     uint256 constant public allowRebalance = 1;
     uint256 constant public allowNewErc20 = 1<<1;
     uint256 constant public allowMint = 1<<2;

@@ -8,7 +8,7 @@ contract leveragedPool is leveragedData{
     using SafeERC20 for IERC20;
     function() external payable {
     }
-    function update() public onlyOwner versionUpdate(){
+    function update() public onlyOwner versionUpdate {
     }
     function setUniswapAddress(address _uniswap) onlyOwner public {
         IUniswap = IUniswapV2Router02(_uniswap);
@@ -398,7 +398,7 @@ contract leveragedPool is leveragedData{
     }
     function getEnableRebalanceAndLiquidate()public view returns (bool,bool){
         uint256[2]memory prices = _getUnderlyingPriceView();
-        uint256 threshold = liquidateThreshold*31e7/feeDecimal;
+        uint256 threshold = liquidateThreshold*29e7/feeDecimal;
         return (checkLiquidate(leverageCoin,prices,threshold),
                 checkLiquidate(hedgeCoin,prices,threshold));
     }

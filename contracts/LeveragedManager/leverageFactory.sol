@@ -162,6 +162,11 @@ contract leverageFactory is leverageFactoryData{
         }
         FPTCoinImpl = _FPTCoinImpl;
     }
+    function setInterestRate(address token,uint64 rate)public onlyOwner{
+        address _stakePool = getStakePool(token);
+        require(_stakePool != address(0),"stakePool is not found!");
+        IStakePool(_stakePool).setInterestRate(rate);
+    }
     function setUniswapAddress(address _uniswap)public onlyOwner{
         uniswap = _uniswap;
         uint256 len = leveragePoolList.length;

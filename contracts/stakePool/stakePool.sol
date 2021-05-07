@@ -18,7 +18,7 @@ contract stakePool is stakePoolData{
         uint256 balance = poolBalance();
         return (_totalSupply.sub(balance)).mul(_interestRate)/_totalSupply;
     }
-    function update() public onlyOwner versionUpdate(){
+    function update() public onlyOwner versionUpdate{
     }
     function poolToken()public view returns (address){
         return _poolToken;

@@ -4,7 +4,11 @@ import "../modules/versionUpdater.sol";
 import "../modules/ReentrancyGuard.sol";
 import "../modules/AddressPermission.sol";
 contract stakePoolData is ImportIFPTCoin,versionUpdater,ReentrancyGuard,AddressPermission{
-    uint256 constant public implementationVersion = 0;
+    uint256 constant internal currentVersion = 0;
+    function implementationVersion() public pure returns (uint256) 
+    {
+        return currentVersion;
+    }
     uint256 constant public allowBorrow = 1;
     uint256 constant public allowRepay = 1<<1;
     uint256 constant internal calDecimal = 1e8; 
