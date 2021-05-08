@@ -11,7 +11,7 @@ import "../modules/versionUpdater.sol";
  * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
  *
  */
-contract leverageFactoryData is AddressPermission,versionUpdater{
+contract leverageFactoryData is versionUpdater{
     uint256 constant internal currentVersion = 2;
     function implementationVersion() public pure returns (uint256) 
     {
@@ -19,7 +19,6 @@ contract leverageFactoryData is AddressPermission,versionUpdater{
     }
     mapping(address=>address payable) public stakePoolMap;
     mapping(bytes32=>address payable) public leveragePoolMap;
-    uint256 constant public allowRebalance = 1;
 
     string public baseCoinName;
 

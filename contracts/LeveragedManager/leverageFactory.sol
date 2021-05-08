@@ -118,7 +118,7 @@ contract leverageFactory is leverageFactoryData{
     function setRebalanceInterval(uint64 interval) public onlyOwner{
         rebalanceInterval = interval;
     }
-    function rebalanceAll()external rebalanceEnable addressPermissionAllowed(msg.sender,allowRebalance) {
+    function rebalanceAll()external rebalanceEnable onlyOperator(3) {
         uint256 len = leveragePoolList.length;
         for(uint256 i=0;i<len;i++){
             ILeveragedPool(leveragePoolList[i]).rebalance();
