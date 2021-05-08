@@ -1,5 +1,5 @@
 pragma solidity =0.5.16;
-import "../modules/Ownable.sol";
+import "../modules/Operator.sol";
 interface IFPTCoin {
     function lockedBalanceOf(address account) external view returns (uint256);
     function lockedWorthOf(address account) external view returns (uint256);
@@ -12,7 +12,7 @@ interface IFPTCoin {
     function getTotalLockedWorth() external view returns (uint256);
     function redeemLockedCollateral(address account,uint256 tokenAmount,uint256 leftCollateral)external returns (uint256,uint256);
 }
-contract ImportIFPTCoin is Ownable{
+contract ImportIFPTCoin is Operator{
     IFPTCoin internal _FPTCoin;
     function getFPTCoinAddress() public view returns(address){
         return address(_FPTCoin);

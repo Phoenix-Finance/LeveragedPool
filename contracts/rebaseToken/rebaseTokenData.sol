@@ -1,10 +1,8 @@
 pragma solidity =0.5.16;
-import "../modules/Ownable.sol";
 import "../ERC20/safeErc20.sol";
 import "../modules/versionUpdater.sol";
-import "../modules/AddressPermission.sol";
 import "../modules/timeLimitation.sol";
-contract rebaseTokenData is Ownable,versionUpdater,AddressPermission,timeLimitation{
+contract rebaseTokenData is versionUpdater,timeLimitation{
     uint256 constant internal currentVersion = 0;
     function implementationVersion() public pure returns (uint256) 
     {

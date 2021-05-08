@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
-import './Ownable.sol';
+import './Operator.sol';
 
-contract Halt is Ownable {
+contract Halt is Operator {
     
     bool private halted = false; 
     
@@ -19,7 +19,7 @@ contract Halt is Ownable {
     /// @notice contribution period to stop or not.
     function setHalt(bool halt) 
         public 
-        onlyOwner
+        onlyOperator2(0,1)
     {
         halted = halt;
     }

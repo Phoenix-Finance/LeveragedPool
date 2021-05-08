@@ -24,30 +24,26 @@ contract leverageFactoryData is AddressPermission,versionUpdater{
     string public baseCoinName;
 
     address public stakePoolImpl;
-
-    address public leveragePoolImpl;
-
-    address public FPTCoinImpl;
-
-    address public rebaseTokenImpl;
-
-    address public fnxOracle;
-    address public uniswap;
-
-    address payable public feeAddress;
-
     //feeDecimals = 8; 
     uint64 public buyFee;
+    address public leveragePoolImpl;
     uint64 public sellFee;
+    address public FPTCoinImpl;
     uint64 public rebalanceFee;
+    uint32 public FPTTimeLimit;
+    address public rebaseTokenImpl;
     uint64 public interestAddRate;
+    uint32 public rebaseTimeLimit;
+    address public fnxOracle;
     uint64 public rebaseThreshold;
+    address public uniswap;
     uint64 public liquidateThreshold;
+    address payable public feeAddress;
+    uint64 public rebalanceInterval;
+    uint64 public lastRebalance;
 
     address payable[] public fptCoinList;
     address payable[] public stakePoolList;
     address payable[] public leveragePoolList;
 
-    uint64 public rebalanceInterval;
-    uint64 public lastRebalance;
 }

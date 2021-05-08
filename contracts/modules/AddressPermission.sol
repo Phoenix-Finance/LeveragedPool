@@ -4,11 +4,11 @@ pragma solidity >=0.5.16;
  * FinNexus
  * Copyright (C) 2020 FinNexus Options Protocol
  */
-import './Ownable.sol';
+import './Operator.sol';
 
-contract AddressPermission is Ownable {
+contract AddressPermission is Operator {
     mapping(address => uint256) public addressPermission;
-    function modifyPermission(address addAddress,uint256 permission)public onlyOwner{
+    function modifyPermission(address addAddress,uint256 permission)public onlyOperator2(0,1){
         addressPermission[addAddress] = permission;
     }
     function checkAddressPermission(address tmpAddress,uint256 state) public view returns (bool){

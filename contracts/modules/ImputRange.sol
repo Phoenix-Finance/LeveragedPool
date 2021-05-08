@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
-import './Ownable.sol';
+import './Operator.sol';
 
-contract ImputRange is Ownable {
+contract ImputRange is Operator {
     
     //The maximum input amount limit.
     uint256 private maxAmount = 1e30;
@@ -46,7 +46,7 @@ contract ImputRange is Ownable {
      * @param _minAmount the minimum input amount limit
      * @param _maxAmount the maximum input amount limit
      */
-    function setInputAmountRange(uint256 _minAmount,uint256 _maxAmount) public onlyOwner{
+    function setInputAmountRange(uint256 _minAmount,uint256 _maxAmount) public onlyOperator2(0,1){
         minAmount = _minAmount;
         maxAmount = _maxAmount;
     }        

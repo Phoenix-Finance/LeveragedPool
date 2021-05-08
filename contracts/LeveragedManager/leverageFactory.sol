@@ -5,7 +5,6 @@ pragma solidity =0.5.16;
  * Copyright (C) 2020 FinNexus Options Protocol
  */
 import "../modules/SafeMath.sol";
-import "../modules/Managerable.sol";
 import "./leverageFactoryData.sol";
 import "../proxy/fnxProxy.sol";
 import "../leveragedPool/ILeveragedPool.sol";
@@ -23,6 +22,11 @@ contract leverageFactory is leverageFactoryData{
     constructor() public {
 
     } 
+    function initialize() public{
+        versionUpdater.initialize();
+        FPTTimeLimit = 30;
+        rebaseTimeLimit = 30;
+    }
     function update() public onlyOwner versionUpdate {
     }
     function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
@@ -90,9 +94,9 @@ contract leverageFactory is leverageFactoryData{
     function createRebaseToken(address leveragePool,address token,string memory name)internal returns(address){
         fnxProxy newToken = new fnxProxy(rebaseTokenImpl);
         IRebaseToken leverageToken = IRebaseToken(address(newToken));
-        leverageToken.modifyPermission(leveragePool,0xFFFFFFFFFFFFFFFF);
+        Operator(address(newToken)).setManager(leveragePool);
         leverageToken.changeTokenName(name,name,token);
-        leverageToken.setTimeLimitation(60);
+        leverageToken.setTimeLimitation(rebaseTimeLimit);
         return address(newToken);
     }
     function getLeveragePool(address tokenA,address tokenB,uint256 leverageRatio)external 
@@ -136,7 +140,7 @@ contract leverageFactory is leverageFactoryData{
             fnxProxy newPool = new fnxProxy(stakePoolImpl);
             stakePool = address(newPool);
             IStakePool(stakePool).setPoolInfo(fptCoin,token,_interestrate);
-            Managerable(fptCoin).setManager(stakePool);
+            Operator(fptCoin).setManager(stakePool);
             stakePoolMap[token] = stakePool;
             stakePoolList.push(stakePool);
             

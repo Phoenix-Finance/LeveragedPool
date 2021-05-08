@@ -4,9 +4,8 @@ import "../interface/IFNXOracle.sol";
 import "../rebaseToken/IRebaseToken.sol";
 import "../uniswap/IUniswapV2Router02.sol";
 import "../stakePool/IStakePool.sol";
-import "../modules/AddressPermission.sol";
 import "../modules/ReentrancyGuard.sol";
-contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPermission{
+contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard{
     uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
@@ -14,7 +13,6 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
     }
     uint256 constant internal calDecimal = 1e18; 
     uint256 constant internal feeDecimal = 1e8; 
-    uint256 constant public allowRebalance = 1;
     struct leverageInfo {
         uint8 id;
         bool bRebase;

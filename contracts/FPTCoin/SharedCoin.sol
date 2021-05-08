@@ -172,6 +172,7 @@ contract SharedCoin is FPTData  {
         require(recipient != address(0), "ERC20: transfer to the zero address");
         _subBalance(sender,amount);
         _addBalance(recipient,amount);
+        setTransferTimeLimitation(sender,recipient);
         emit Transfer(sender, recipient, amount);
     }
 
@@ -189,6 +190,7 @@ contract SharedCoin is FPTData  {
 
         _totalSupply = _totalSupply.add(amount);
         _addBalance(account,amount);
+        setTransferTimeLimitation(address(0),account);
         emit Transfer(address(0), account, amount);
     }
     /**

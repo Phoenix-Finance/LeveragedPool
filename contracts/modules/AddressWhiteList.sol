@@ -18,14 +18,14 @@ contract AddressWhiteList is Halt {
      * @dev Implementation of add an eligible address into the whitelist.
      * @param addAddress new eligible address.
      */
-    function addWhiteList(address addAddress)public onlyOwner{
+    function addWhiteList(address addAddress)public onlyOperator2(0,1){
         whiteList.addWhiteListAddress(addAddress);
     }
     /**
      * @dev Implementation of revoke an invalid address from the whitelist.
      * @param removeAddress revoked address.
      */
-    function removeWhiteList(address removeAddress)public onlyOwner returns (bool){
+    function removeWhiteList(address removeAddress)public onlyOperator2(0,1) returns (bool){
         return whiteList.removeWhiteListAddress(removeAddress);
     }
     /**

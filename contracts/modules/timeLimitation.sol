@@ -1,36 +1,44 @@
 pragma solidity =0.5.16;
-import './Ownable.sol';
+import './Operator.sol';
 
-contract timeLimitation is Ownable {
+contract timeLimitation is Operator {
     
     /**
      * @dev FPT has burn time limit. When user's balance is moved in som coins, he will wait `timeLimited` to burn FPT. 
      * latestTransferIn is user's latest time when his balance is moved in.
      */
-    mapping(uint256=>uint256) internal itemTimeMap;
-    uint256 internal limitation = 1 hours;
+    struct addressInfo {
+        uint128 time;
+        bool bIgnoreFrom;
+        bool bIgnoreTo;
+    }
+    mapping(address=>addressInfo) internal addressTimeMap;
+    uint256 public limitation;
     /**
      * @dev set time limitation, only owner can invoke. 
      * @param _limitation new time limitation.
      */ 
-    function setTimeLimitation(uint256 _limitation) public onlyOwner {
+    function setTimeLimitation(uint256 _limitation) public  onlyOperator2(0,1) {
         limitation = _limitation;
     }
-    function setItemTimeLimitation(uint256 item) internal{
-        itemTimeMap[item] = now;
+    function setAccountInfo(address account,bool bIgnoreFrom,bool bIgnoreTo) public  onlyOperator2(0,1){
+        addressTimeMap[account].bIgnoreFrom = bIgnoreFrom;
+        addressTimeMap[account].bIgnoreTo = bIgnoreTo;
     }
-    function getTimeLimitation() public view returns (uint256){
-        return limitation;
+    function setTransferTimeLimitation(address from,address to) internal{
+        if (!addressTimeMap[from].bIgnoreFrom && !addressTimeMap[to].bIgnoreTo){
+            addressTimeMap[to].time = uint128(now);
+        }
     }
     /**
      * @dev Retrieve user's start time for burning. 
-     * @param item item key.
+     * @param account user's account.
      */ 
-    function getItemTimeLimitation(uint256 item) public view returns (uint256){
-        return itemTimeMap[item]+limitation;
+    function getTimeLimitation(address account) public view returns (uint256){
+        return addressTimeMap[account].time+limitation;
     }
-    modifier OutLimitation(uint256 item) {
-        require(itemTimeMap[item]+limitation<now,"Time limitation is not expired!");
+    modifier OutLimitation(address account) {
+        require(addressTimeMap[account].time+limitation<now,"Time limitation is not expired!");
         _;
     }    
 }

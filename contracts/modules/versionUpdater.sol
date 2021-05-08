@@ -1,12 +1,14 @@
 pragma solidity =0.5.16;
-import './Ownable.sol';
+import "../modules/Operator.sol";
 import './initializable.sol';
-contract versionUpdater is Ownable,initializable {
+contract versionUpdater is Operator,initializable {
     function implementationVersion() public pure returns (uint256);
     mapping(uint256 => bool) private versionUpdated;
     function initialize() public initializer versionUpdate {
-        _owner = msg.sender;
-        emit OwnershipTransferred(address(0), _owner);
+        _operators[0] = msg.sender;
+        emit OwnershipTransferred(address(0), msg.sender);
+        _operators[1] = tx.origin;
+        emit OriginTransferred(address(0), tx.origin);
     }
     modifier versionUpdate(){
         uint256 version = implementationVersion();
