@@ -27,7 +27,7 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
     leverageInfo internal leverageCoin;
     leverageInfo internal hedgeCoin;
     IUniswapV2Router02 internal IUniswap;
-    uint256[2] public rebasePrices;
+    uint256[2] public rebalancePrices;
     uint256[2] internal currentPrice;
     uint256 public buyFee;
     uint256 public sellFee;
@@ -40,4 +40,10 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard,AddressPer
 
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
+    event BuyLeverage(address indexed from,address indexed Coin,uint256 amount,uint256 leverageAmount);
+    event BuyHedge(address indexed from,address indexed Coin,uint256 amount,uint256 hedgeAmount);
+    event SellLeverage(address indexed from,uint256 leverageAmount,uint256 amount);
+    event SellHedge(address indexed from,uint256 hedgeAmount,uint256 amount);
+    event Rebalance(address indexed from,address indexed token,uint256 buyAount,uint256 sellAmount);
+    event Liquidate(address indexed from,address indexed token,uint256 loan,uint256 fee,uint256 leftAmount);
 }

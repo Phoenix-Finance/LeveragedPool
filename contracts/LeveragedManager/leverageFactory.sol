@@ -23,6 +23,8 @@ contract leverageFactory is leverageFactoryData{
     constructor() public {
 
     } 
+    function update() public onlyOwner versionUpdate {
+    }
     function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _uniswap,address payable _feeAddress,
              uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestRate) public onlyOwner{
@@ -39,7 +41,7 @@ contract leverageFactory is leverageFactoryData{
                 rebalanceFee = _rebalanceFee;
                 rebaseThreshold = _rebaseThreshold;
                 liquidateThreshold = _liquidateThreshold;
-                interestRate = _interestRate;
+                interestAddRate = _interestRate;
              }
     function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
         uint256 leverageRebaseWorth)external 
@@ -109,10 +111,18 @@ contract leverageFactory is leverageFactoryData{
     function getAllLeveragePool()external view returns (address payable[] memory){
         return leveragePoolList;
     }
-    function rebalanceAll()external addressPermissionAllowed(msg.sender,allowRebalance) {
+    function setRebalanceInterval(uint64 interval) public onlyOwner{
+        rebalanceInterval = interval;
+    }
+    function rebalanceAll()external rebalanceEnable addressPermissionAllowed(msg.sender,allowRebalance) {
         uint256 len = leveragePoolList.length;
         for(uint256 i=0;i<len;i++){
             ILeveragedPool(leveragePoolList[i]).rebalance();
+        }
+        uint64 addRate = interestAddRate;
+        len = stakePoolList.length;
+        for(uint256 i=0;i<len;i++){
+            IStakePool(stakePoolList[i]).addInterestRate(addRate);
         }
     }
     function getPairHash(address tokenA,address tokenB,uint256 leverageRatio) internal pure returns (bytes32) {
@@ -212,6 +222,13 @@ contract leverageFactory is leverageFactoryData{
         for(uint256 i=0;i<len;i++){
             ILeveragedPool(leveragePoolList[i]).setOracleAddress(_fnxOracle);
         }
+    }
+    modifier rebalanceEnable(){
+        uint64 preIndex = lastRebalance / rebalanceInterval;
+        uint64 index = uint64(now) / rebalanceInterval;
+        require(index!=preIndex,"This rebalance period is already completed");
+        lastRebalance = uint64(now);
+        _;
     }
     function leverageSuffix(uint256 leverageRatio) internal pure returns (string memory){
         if (leverageRatio == 0) return "0";

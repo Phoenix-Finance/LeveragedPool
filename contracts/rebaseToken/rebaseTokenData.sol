@@ -42,4 +42,6 @@ contract rebaseTokenData is Ownable,versionUpdater,AddressPermission,timeLimitat
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
+    event Rebase(address indexed from,uint256 oldTotalSupply,uint256 newTotalSupply);
+    event NewERC20(address indexed from,uint256 erc20Length,uint256 leftAmount);
 }

@@ -12,7 +12,7 @@ import "../modules/versionUpdater.sol";
  *
  */
 contract leverageFactoryData is AddressPermission,versionUpdater{
-    uint256 constant internal currentVersion = 0;
+    uint256 constant internal currentVersion = 2;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
@@ -40,12 +40,14 @@ contract leverageFactoryData is AddressPermission,versionUpdater{
     uint64 public buyFee;
     uint64 public sellFee;
     uint64 public rebalanceFee;
-    uint64 public interestRate;
+    uint64 public interestAddRate;
     uint64 public rebaseThreshold;
     uint64 public liquidateThreshold;
-
 
     address payable[] public fptCoinList;
     address payable[] public stakePoolList;
     address payable[] public leveragePoolList;
+
+    uint64 public rebalanceInterval;
+    uint64 public lastRebalance;
 }

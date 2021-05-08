@@ -19,11 +19,12 @@ contract rebaseToken is rebaseTokenData {
     function newErc20(uint256 leftAmount) external addressPermissionAllowed(msg.sender,allowNewErc20){
         Erc20InfoList[Erc20InfoList.length-1].leftAmount = leftAmount;
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
+        emit NewERC20(msg.sender,Erc20InfoList.length,leftAmount);
     }
     function getErc20Info() internal view returns(Erc20Info memory){
         return Erc20InfoList[Erc20InfoList.length-1];
     }
-    function totalSupply() external view returns (uint256){
+    function totalSupply() public view returns (uint256){
         Erc20Info memory info = getErc20Info();
         return info._totalSupply*info.rebaseRatio/rebaseDecimal;
     }
@@ -55,7 +56,7 @@ contract rebaseToken is rebaseTokenData {
         }
         return amount;
     }
-    function redeemAmount() public {
+    function redeemToken() public {
         uint256 amount = getRedeemAmount(msg.sender);
         if(amount > 0){
             _redeem(msg.sender,leftToken,amount);
@@ -65,6 +66,7 @@ contract rebaseToken is rebaseTokenData {
     function calRebaseRatio(uint256 newTotalSupply) public addressPermissionAllowed(msg.sender,allowRebalance) {
         Erc20Info storage info = Erc20InfoList[Erc20InfoList.length-1];
         if (info._totalSupply > 0){
+            emit Rebase(msg.sender,totalSupply(),newTotalSupply);
             info.rebaseRatio = newTotalSupply.mul(rebaseDecimal)/info._totalSupply;
         }
     }

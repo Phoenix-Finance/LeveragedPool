@@ -10,6 +10,7 @@ contract stakePool is stakePoolData{
         _FPTCoin = IFPTCoin(fptToken);
         _poolToken = stakeToken;
         _interestRate = interestrate;
+        _defaultRate = interestrate;
     }
     function poolInterest()public view returns (uint256){
         if(_totalSupply == 0){
@@ -28,6 +29,17 @@ contract stakePool is stakePoolData{
     }
     function setInterestRate(uint64 interestrate) public onlyOwner{
         _interestRate = interestrate;
+        _defaultRate = interestrate;
+    }
+    function addInterestRate(uint64 interestAdd)public onlyOwner{
+        if(_totalSupply > 0){
+            uint256 balance = poolBalance();
+            if(balance*100<_totalSupply){
+                _interestRate = _interestRate*interestAdd/1e8;
+            }else{
+                _interestRate = _defaultRate;
+            }
+        }
     }
     function totalSupply()public view returns (uint256){
         return _totalSupply;
