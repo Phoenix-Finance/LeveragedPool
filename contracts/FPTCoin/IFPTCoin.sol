@@ -1,16 +1,11 @@
 pragma solidity =0.5.16;
 import "../modules/Operator.sol";
 interface IFPTCoin {
-    function lockedBalanceOf(address account) external view returns (uint256);
-    function lockedWorthOf(address account) external view returns (uint256);
-    function getLockedBalance(address account) external view returns (uint256,uint256);
+    function changeTokenName(string calldata _name, string calldata _symbol,uint8 _decimals)external;
     function balanceOf(address account) external view returns (uint256);
     function totalSupply() external view returns (uint256);
     function mint(address account, uint256 amount) external;
     function burn(address account, uint256 amount) external;
-    function addlockBalance(address account, uint256 amount,uint256 lockedWorth)external; 
-    function getTotalLockedWorth() external view returns (uint256);
-    function redeemLockedCollateral(address account,uint256 tokenAmount,uint256 leftCollateral)external returns (uint256,uint256);
 }
 contract ImportIFPTCoin is Operator{
     IFPTCoin internal _FPTCoin;

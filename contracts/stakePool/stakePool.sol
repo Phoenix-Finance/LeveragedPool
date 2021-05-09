@@ -1,6 +1,5 @@
 pragma solidity =0.5.16;
 import "../ERC20/safeErc20.sol";
-import "../FPTCoin/IFPTCoin.sol";
 import "../modules/SafeMath.sol";
 import "./stakePoolData.sol";
 contract stakePool is stakePoolData{

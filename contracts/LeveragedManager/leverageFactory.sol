@@ -11,6 +11,7 @@ import "../leveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
 import "../ERC20/IERC20.sol";
 import "../rebaseToken/IRebaseToken.sol";
+import "../FPTCoin/IFPTCoin.sol";
 /**
  * @title FNX period mine pool.
  * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
@@ -152,7 +153,7 @@ contract leverageFactory is leverageFactoryData{
         fptCoinList.push(address(newCoin));
         string memory tokenName = (token == address(0)) ? string(abi.encodePacked("FPT_", baseCoinName)):
                  string(abi.encodePacked("FPT_",IERC20(token).symbol()));
-        IERC20(address(newCoin)).changeTokenName(tokenName,tokenName);
+        IFPTCoin(address(newCoin)).changeTokenName(tokenName,tokenName,IERC20(token).decimals());
         return address(newCoin);
     }
     function upgradeStakePool(address _stakePoolImpl) public onlyOwner{

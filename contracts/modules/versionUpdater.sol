@@ -3,7 +3,7 @@ import "../modules/Operator.sol";
 import './initializable.sol';
 contract versionUpdater is Operator,initializable {
     function implementationVersion() public pure returns (uint256);
-    mapping(uint256 => bool) private versionUpdated;
+    uint256 lastVersion;
     function initialize() public initializer versionUpdate {
         _operators[0] = msg.sender;
         emit OwnershipTransferred(address(0), msg.sender);
@@ -12,8 +12,8 @@ contract versionUpdater is Operator,initializable {
     }
     modifier versionUpdate(){
         uint256 version = implementationVersion();
-        require(!versionUpdated[version],"New version implementation is already updated!");
-        versionUpdated[version] = true;
+        require(version >= lastVersion,"New version implementation is already updated!");
+        lastVersion = version;
         _;
     }
 }

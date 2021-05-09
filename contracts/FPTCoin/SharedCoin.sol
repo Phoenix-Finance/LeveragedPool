@@ -12,13 +12,14 @@ contract SharedCoin is FPTData  {
      * @param _symbol token symbol
      *
      */
-    function changeTokenName(string memory _name, string memory _symbol)
+    function changeTokenName(string memory _name, string memory _symbol,uint8 _decimals)
         public
         onlyOwner
     {
         //check parameter in ico minter contract
         name = _name;
         symbol = _symbol;
+        decimals = _decimals;
     }
     /**
      * @dev See {IERC20-totalSupply}.
