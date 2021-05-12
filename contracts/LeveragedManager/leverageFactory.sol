@@ -32,7 +32,7 @@ contract leverageFactory is leverageFactoryData{
     }
     function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _uniswap,address payable _feeAddress,
-             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestRate) public onlyOwner{
+             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public onlyOwner{
                 baseCoinName = _baseCoinName;
                 stakePoolImpl = _stakePoolImpl;
                 leveragePoolImpl = _leveragePoolImpl;
@@ -46,7 +46,7 @@ contract leverageFactory is leverageFactoryData{
                 rebalanceFee = _rebalanceFee;
                 rebaseThreshold = _rebaseThreshold;
                 liquidateThreshold = _liquidateThreshold;
-                interestAddRate = _interestRate;
+                interestInflation = _interestInflation;
              }
     function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
         uint256 leverageRebaseWorth)external 
@@ -124,10 +124,10 @@ contract leverageFactory is leverageFactoryData{
         for(uint256 i=0;i<len;i++){
             ILeveragedPool(leveragePoolList[i]).rebalance();
         }
-        uint64 addRate = interestAddRate;
+        uint64 inflation = interestInflation;
         len = stakePoolList.length;
         for(uint256 i=0;i<len;i++){
-            IStakePool(stakePoolList[i]).addInterestRate(addRate);
+            IStakePool(stakePoolList[i]).addInterestRate(inflation);
         }
     }
     function getPairHash(address tokenA,address tokenB,uint256 leverageRatio) internal pure returns (bytes32) {
@@ -212,6 +212,13 @@ contract leverageFactory is leverageFactoryData{
             ILeveragedPool(leveragePoolList[i]).setLeverageFee(_buyFee,_sellFee,_rebalanceFee);
         }
     }
+    function setFnxOracle(address _fnxOracle) public onlyOwner{
+        fnxOracle = _fnxOracle;
+        uint256 len = leveragePoolList.length;
+        for(uint256 i=0;i<len;i++){
+            ILeveragedPool(leveragePoolList[i]).setOracleAddress(_fnxOracle);
+        }
+    }
     function upgradeRebaseToken(address _rebaseTokenImpl) public onlyOwner{
         uint256 len = leveragePoolList.length;
         for(uint256 i = 0;i<len;i++){
@@ -221,13 +228,7 @@ contract leverageFactory is leverageFactoryData{
         }
         rebaseTokenImpl = _rebaseTokenImpl;
     }
-    function setFnxOracle(address _fnxOracle) public onlyOwner{
-        fnxOracle = _fnxOracle;
-        uint256 len = leveragePoolList.length;
-        for(uint256 i=0;i<len;i++){
-            ILeveragedPool(leveragePoolList[i]).setOracleAddress(_fnxOracle);
-        }
-    }
+
     modifier rebalanceEnable(){
         uint64 preIndex = lastRebalance / rebalanceInterval;
         uint64 index = uint64(now) / rebalanceInterval;

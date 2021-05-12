@@ -11,14 +11,14 @@ contract stakePool is stakePoolData{
         _interestRate = interestrate;
         _defaultRate = interestrate;
     }
+    function update() public onlyOwner versionUpdate{
+    }
     function poolInterest()public view returns (uint256){
         if(_totalSupply == 0){
             return 0;
         }
         uint256 balance = poolBalance();
         return (_totalSupply.sub(balance)).mul(_interestRate)/_totalSupply;
-    }
-    function update() public onlyOwner versionUpdate{
     }
     function poolToken()public view returns (address){
         return _poolToken;

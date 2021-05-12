@@ -12,7 +12,7 @@ import "../modules/versionUpdater.sol";
  *
  */
 contract leverageFactoryData is versionUpdater{
-    uint256 constant internal currentVersion = 2;
+    uint256 constant internal currentVersion = 0;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
@@ -31,7 +31,7 @@ contract leverageFactoryData is versionUpdater{
     uint64 public rebalanceFee;
     uint32 public FPTTimeLimit;
     address public rebaseTokenImpl;
-    uint64 public interestAddRate;
+    uint64 public interestInflation;
     uint32 public rebaseTimeLimit;
     address public fnxOracle;
     uint64 public rebaseThreshold;

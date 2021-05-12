@@ -86,9 +86,6 @@ contract leveragedPool is leveragedData{
         }
     }
 
-    function getDefaultLeverageRate()public view returns (uint256){
-        return defaultLeverageRatio;
-    }
     function underlyingBalance(uint8 id)internal view returns (uint256){
         address token = (id == 0) ? hedgeCoin.token : leverageCoin.token;
         if (token == address(0)){
@@ -190,8 +187,10 @@ contract leveragedPool is leveragedData{
         require(amount > 0, 'sell amount is zero');
         uint256 userLoan;
         uint256 allSell;
+        uint256 total = coinInfo.leverageToken.totalSupply();
+        coinInfo.leverageToken.burn(msg.sender,amount);
         uint256 getLoan = coinInfo.stakePool.loan(address(this)).mul(calDecimal);
-        if(coinInfo.leverageToken.totalSupply() == amount){
+        if(total == amount){
             userLoan = getLoan;
             allSell = swap(false,coinInfo.id,underlyingBalance(coinInfo.id),0);
         }else{
@@ -207,7 +206,6 @@ contract leveragedPool is leveragedData{
         require(repay >= minAmount, "Repay amount is less than minAmount");
         _repay(coinInfo,userLoan,false);
         _redeem(msg.sender,coinInfo.token,repay);
-        coinInfo.leverageToken.burn(msg.sender,amount);
         _redeem(feeAddress, coinInfo.token, fee);
         if(coinInfo.id == 0){
             emit SellLeverage(msg.sender,amount,repay);

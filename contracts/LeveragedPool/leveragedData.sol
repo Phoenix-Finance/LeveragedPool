@@ -6,7 +6,7 @@ import "../uniswap/IUniswapV2Router02.sol";
 import "../stakePool/IStakePool.sol";
 import "../modules/ReentrancyGuard.sol";
 contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard{
-    uint256 constant internal currentVersion = 1;
+    uint256 constant internal currentVersion = 0;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
@@ -34,6 +34,7 @@ contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard{
     uint256 public defaultRebalanceWorth;
     uint256 public rebaseThreshold;
     uint256 public liquidateThreshold;
+    
     address payable public feeAddress;
 
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
