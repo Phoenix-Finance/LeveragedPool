@@ -162,7 +162,7 @@ contract leverageFactory is leverageFactoryData{
         require(_stakePool != address(0),"stakePool is not found!");
         IStakePool(_stakePool).setInterestRate(rate);
     }
-    function setContractsInfo(uint256 index,bytes memory data)internal{
+    function setContractsInfo(uint256 index,bytes memory data)public onlyOwner{
         proxyInfo storage curInfo = proxyinfoMap[index];
         uint256 len = curInfo.proxyList.length;
         for(uint256 i = 0;i<len;i++){
