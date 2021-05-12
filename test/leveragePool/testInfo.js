@@ -60,8 +60,8 @@ module.exports = {
         let proxy = await fnxProxy.new(lFactory.address,{from:account});
         lFactory = await leverageFactory.at(proxy.address);
         await lFactory.initFactoryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
-        beforeInfo.univ2,account,1e5,1e5,1e5,15e7,1e7,1e5,{from:account});
-        await lFactory.modifyPermission(account,0xFFFFFFFF,{from:account});
+        beforeInfo.univ2,account,1,1e5,1e5,1e5,15e7,1e7,1001e5,{from:account});
+        await lFactory.setOperator(3,account,{from:account});
         
         /*
         let amount = new BN("1000000000000000000000000000000");

@@ -30,11 +30,11 @@ contract stakePool is stakePoolData{
         _interestRate = interestrate;
         _defaultRate = interestrate;
     }
-    function addInterestRate(uint64 interestAdd)public onlyOwner{
+    function interestInflation(uint64 inflation)public onlyOwner{
         if(_totalSupply > 0){
             uint256 balance = poolBalance();
             if(balance*100<_totalSupply){
-                _interestRate = _interestRate*interestAdd/1e8;
+                _interestRate = _interestRate*inflation/1e8;
             }else{
                 _interestRate = _defaultRate;
             }

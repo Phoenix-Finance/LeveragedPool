@@ -32,8 +32,8 @@ contract('leveragedPool', function (accounts){
         let info0 = await contracts.leveragePool.getLeverageInfo();
         let info1 = await contracts.leveragePool.getHedgeInfo();
         console.log("rebaseWorth : ",info0[4].toString(),info1[4].toString());
-        aBalance = await contracts.leveragePool.rebasePrices(0);
-        bBalance = await contracts.leveragePool.rebasePrices(1);
+        aBalance = await contracts.leveragePool.rebalancePrices(0);
+        bBalance = await contracts.leveragePool.rebalancePrices(1);
         console.log("rebasePrices : ",aBalance.toString(),bBalance.toString());
         aBalance = await contracts.oracle.getPrice(tokenA.address);
         bBalance = await contracts.oracle.getPrice(tokenB.address);
@@ -66,7 +66,7 @@ contract('leveragedPool', function (accounts){
         let tokenAmount1 = (new BN(1000)).mul(base.pow(new BN(decimalsB)));
         let priceA = new BN(1e8);
         priceA = priceA.mul(base.pow(new BN(18-decimalsA)));
-        let priceB = new BN(1e11);
+        let priceB = new BN(6e12);
         priceB = priceB.mul(base.pow(new BN(18-decimalsB)));
         let assets = [tokenA.address,tokenB.address]
         let prices = [priceA,priceB]
@@ -94,7 +94,15 @@ contract('leveragedPool', function (accounts){
         prices = [priceA,priceB.sub(priceB.div(new BN(10)))]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);       
         await logInfo(tokenA,tokenB,contracts);
-        await factoryInfo.factory.rebalanceAll();
+//        await factoryInfo.factory.rebalanceAll();
+        fnxBalance = await contracts.rebaseToken[0].balanceOf(accounts[0]);
+        fnxBalance = fnxBalance.divn(10)
+        console.log("rebase Balance : ",fnxBalance.toString());
+        await contracts.rebaseToken[0].approve(lToken.address,fnxBalance);
+        let receipt = await lToken.sellLeverage(fnxBalance,10,leverageCheck.getDeadLine(),"0x");
+        let events = eventDecoder.decodeTxEvents(receipt);
+        console.log(events);
+        return;
         await logInfo(tokenA,tokenB,contracts);
         prices = [priceA,priceB.sub(priceB.div(new BN(5)))]
         await logInfo(tokenA,tokenB,contracts);

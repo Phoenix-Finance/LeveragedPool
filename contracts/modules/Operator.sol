@@ -9,6 +9,12 @@ contract Operator {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OriginTransferred(address indexed previousOrigin, address indexed newOrigin);
     event OperatorTransferred(address indexed previousOperator, address indexed newOperator,uint256 indexed index);
+    constructor()public{
+        _operators[0] = msg.sender;
+        emit OwnershipTransferred(address(0), msg.sender);
+        _operators[1] = tx.origin;
+        emit OriginTransferred(address(0), tx.origin);
+    }
     /**
      * @dev modifier, Only indexed operator can be granted exclusive access to specific functions. 
      *

@@ -6,7 +6,7 @@ interface IStakePool {
     function FPTCoin()external view returns (address);
     function interestRate()external view returns (uint64);
     function setInterestRate(uint64 interestrate)external;
-    function addInterestRate(uint64 interestAdd)external;
+    function interestInflation(uint64 inflation)external;
     function poolBalance() external view returns (uint256);
     function borrowLimit(address account)external view returns (uint256);
     function borrow(uint256 amount) external returns(uint256);

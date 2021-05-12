@@ -188,7 +188,6 @@ contract leveragedPool is leveragedData{
         uint256 userLoan;
         uint256 allSell;
         uint256 total = coinInfo.leverageToken.totalSupply();
-        coinInfo.leverageToken.burn(msg.sender,amount);
         uint256 getLoan = coinInfo.stakePool.loan(address(this)).mul(calDecimal);
         if(total == amount){
             userLoan = getLoan;
@@ -207,6 +206,8 @@ contract leveragedPool is leveragedData{
         _repay(coinInfo,userLoan,false);
         _redeem(msg.sender,coinInfo.token,repay);
         _redeem(feeAddress, coinInfo.token, fee);
+        //burn must run after getnetworth
+        coinInfo.leverageToken.burn(msg.sender,amount);
         if(coinInfo.id == 0){
             emit SellLeverage(msg.sender,amount,repay);
         }else{

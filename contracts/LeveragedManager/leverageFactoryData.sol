@@ -17,32 +17,33 @@ contract leverageFactoryData is versionUpdater{
     {
         return currentVersion;
     }
+    uint256 constant public LeveragePoolID = 0;
+    uint256 constant public stakePoolID = 1;
+    uint256 constant public rebasePoolID = 2;
+    uint256 constant public FPTTokenID = 3;
+    struct proxyInfo {
+        address implementation;
+        address payable[] proxyList;
+    }
+    mapping(uint256=>proxyInfo) public proxyinfoMap;
     mapping(address=>address payable) public stakePoolMap;
     mapping(bytes32=>address payable) public leveragePoolMap;
 
     string public baseCoinName;
 
-    address public stakePoolImpl;
     //feeDecimals = 8; 
     uint64 public buyFee;
-    address public leveragePoolImpl;
     uint64 public sellFee;
-    address public FPTCoinImpl;
     uint64 public rebalanceFee;
-    uint32 public FPTTimeLimit;
-    address public rebaseTokenImpl;
     uint64 public interestInflation;
-    uint32 public rebaseTimeLimit;
     address public fnxOracle;
     uint64 public rebaseThreshold;
+    uint32 public FPTTimeLimit;
     address public uniswap;
     uint64 public liquidateThreshold;
+    uint32 public rebaseTimeLimit;
     address payable public feeAddress;
     uint64 public rebalanceInterval;
     uint64 public lastRebalance;
-
-    address payable[] public fptCoinList;
-    address payable[] public stakePoolList;
-    address payable[] public leveragePoolList;
 
 }
