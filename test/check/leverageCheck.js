@@ -11,20 +11,25 @@ module.exports = {
         let rebaseBalancePre = await contracts.rebaseToken[index].balanceOf(account);
         amount = new BN(amount);
         let receipt;
+        let token = contracts.token[index]
+        if (token != eth){
+            await contracts.token[index%2].approve(contracts.leveragePool.address,amount,{from:account});
+        }
         if(index == 0){
-            await contracts.token[index].approve(contracts.leveragePool.address,amount,{from:account});
             receipt = await contracts.leveragePool.buyLeverage(amount,minAmount,this.getDeadLine(),[],{from:account});
         }else{
-            if (contracts.tokenAddr[1] == eth){
+            if (token == eth){
                 receipt = await contracts.leveragePool.buyHedge(amount,minAmount,this.getDeadLine(),[],{from:account,value:amount});
             }else{
-                await contracts.token[index].approve(contracts.leveragePool.address,amount,{from:account});
                 receipt = await contracts.leveragePool.buyHedge(amount,minAmount,this.getDeadLine(),[],{from:account});
             }
         }
+        await this.checkInfo(rebaseBalancePre,receipt,eventDecoder,contracts,index,amount,account);
+    },
+    checkInfo : async function (rebaseBalancePre,receipt,eventDecoder,contracts,index,amount,account){
         let events = eventDecoder.decodeTxEvents(receipt);
-        let fees = await contracts.leveragePool.getLeverageFee();
-        let fee = amount.mul(fees[0]).div(this.feeDecimal)
+        let fee = await contracts.leveragePool.buyFee();
+        fee = amount.mul(fee).div(this.feeDecimal)
         let feeEvent = this.findEvent(events,"Redeem",0)
         assert(fee.eq(new BN(feeEvent.amount)),fee.toString(10)+","+feeEvent.amount+ " : Buy leverage fee check failed!");
         let price = await contracts.leveragePool.buyPrices();
@@ -37,20 +42,40 @@ module.exports = {
         assert(tokenAmount.eq(rebaseBalance),tokenAmount.toString(10)+","+rebaseBalance.toString(10)+ " : rebase token balance check failed!");
         let borrowEvent = this.findEvent(events,"Borrow",0)
         let loan = contracts.info[index][3].sub(this.feeDecimal).mul(tokenAmount).mul(contracts.info[index][4]).div(this.feeDecimal).div(this.calDecimal);
-        //assert(loan.eq(new BN(borrowEvent.loan)),loan.toString(10)+","+borrowEvent.loan+ " : leverage loan check failed!");
+        assert(loan.sub(new BN(borrowEvent.loan)).toNumber()<10,loan.toString(10)+","+borrowEvent.loan+ " : leverage loan check failed!");
         let rate = await contracts.stakepool[index].interestRate();
         let borrow = loan.mul(this.feeDecimal.sub(rate)).div(this.feeDecimal);
-//        assert(borrow.eq(new BN(borrowEvent.reply)),borrow.toString(10)+","+borrowEvent.reply+ " : leverage borrow check failed!");
+        assert(borrow.sub(new BN(borrowEvent.reply)).toNumber()<10,borrow.toString(10)+","+borrowEvent.reply+ " : leverage borrow check failed!");
         let swap = this.findEvent(events,"Swap",0);
         console.log(swap);
         let swapFrom = borrow.add(amount).sub(fee);
-//        assert(swapFrom.eq(new BN(swap.fromValue)),swapFrom.toString(10) +","+swap.fromValue+ " : swap from value check failed!");
+        assert(swapFrom.sub(new BN(swap.fromValue)).toNumber()<10,swapFrom.toString(10) +","+swap.fromValue+ " : swap from value check failed!");
         let prices = await contracts.oracle.getPrices(contracts.tokenAddr);
         let underlyingPrice = this.getUnderlyingPrice(prices,index);
         let netWorth = underlyingPrice.mul(new BN(swap.toValue)).sub(loan.mul(this.calDecimal)).div(rebaseBalance);
         let getNetworth = await contracts.leveragePool.getTokenNetworths();
         console.log(getNetworth[index].toString(10),netWorth.toString(10));
         //assert(getNetworth[index].eq(netWorth),getNetworth[index].toString(10) +","+netWorth.toString(10)+ " : networth check failed!");
+
+    },
+    buyLeverage2 : async function(eventDecoder,contracts,index,amount,minAmount,account) {
+        let rebaseBalancePre = await contracts.rebaseToken[index].balanceOf(account);
+        amount = new BN(amount);
+        let receipt;
+        let token = contracts.token[(index+1)%2]
+        if (token != eth){
+            await token.approve(contracts.leveragePool.address,amount,{from:account});
+        }
+        if(index == 0){
+            receipt = await contracts.leveragePool.buyLeverage2(amount,minAmount,this.getDeadLine(),[],{from:account});
+        }else{
+            if (token == eth){
+                receipt = await contracts.leveragePool.buyHedge2(amount,minAmount,this.getDeadLine(),[],{from:account,value:amount});
+            }else{
+                receipt = await contracts.leveragePool.buyHedge2(amount,minAmount,this.getDeadLine(),[],{from:account});
+            }
+        }
+        //await this.checkInfo(rebaseBalancePre,receipt,eventDecoder,contracts,index,amount,account);
     },
     rebalance : async function(eventDecoder,contracts,index,account) {
         let receipt = await contracts.leveragePool.rebalance({from:account});
@@ -65,8 +90,8 @@ module.exports = {
             receipt = await lToken.sellHedge(fnxBalance,this.getDeadLine(),[]);
         }
         let events = eventDecoder.decodeTxEvents(receipt);
-        let fees = await contracts.leveragePool.getLeverageFee();
-        let fee = amount.mul(fees[0]).div(this.feeDecimal)
+        let fee = await contracts.leveragePool.buyFee();
+        fee = amount.mul(fee).div(this.feeDecimal)
         let feeEvent = this.findEvent(events,"Redeem",0)
         assert(fee.eq(new BN(feeEvent.amount)),fee.toString(10)+","+feeEvent.amount+ " : Buy leverage fee check failed!");
         let price = await contracts.leveragePool.buyPrices();

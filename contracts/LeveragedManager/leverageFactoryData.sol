@@ -4,7 +4,6 @@ pragma solidity =0.5.16;
  * FinNexus
  * Copyright (C) 2020 FinNexus Options Protocol
  */
-import "../modules/AddressPermission.sol";
 import "../modules/versionUpdater.sol";
 /**
  * @title FNX period mine pool.
@@ -39,11 +38,12 @@ contract leverageFactoryData is versionUpdater{
     address public fnxOracle;
     uint64 public rebaseThreshold;
     uint32 public FPTTimeLimit;
-    address public uniswap;
+    address public swapRouter;
     uint64 public liquidateThreshold;
     uint32 public rebaseTimeLimit;
     address payable public feeAddress;
     uint64 public rebalanceInterval;
+    address public fnxSwapLib;
     uint64 public lastRebalance;
 
 }

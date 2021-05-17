@@ -10,16 +10,17 @@ const fnxProxy = artifacts.require("fnxProxy");
 const IUniswapV2Router02 = artifacts.require("IUniswapV2Router02");
 const IUniswapV2Factory = artifacts.require("IUniswapV2Factory");
 const uniswapSync = artifacts.require("uniswapSync");
+const UniSwapRouter = artifacts.require("UniSwapRouter");
 const IERC20 = artifacts.require("IERC20");
 const IWETH = artifacts.require("IWETH");
 let eth = "0x0000000000000000000000000000000000000000";
 module.exports = {
     before : async function() {
-        let fnx = await IERC20.at("0xcfD494f8aF60ca86D0936e99dF3904f590c86A57");
-        let USDC = await IERC20.at("0xD5F99d02f2eD78B168cc13067c56DfDa5a3DfaBA");
-        let WBTC = await IERC20.at("0x9be7B0D8c7a2d2559DDd4996B5B80697f168eD33");
-        let WETH = await IERC20.at("0x9d3943c9c360aD3928B8d9EA18fEAac0b651963b");
-        let univ2 = "0xAFf49db8dba14f0623C384cCd0B06Eb742dD75Af";
+        let fnx = await IERC20.at("0x3b94c04B68c70Fe70CbCc994A312b69c2d500cB3");
+        let USDC = await IERC20.at("0x4cDF8a962F441faEbc812d8239991bF4930e5D53");
+        let WBTC = await IERC20.at("0x36dD154a6aF4E4EbF7779Dbaa79DB3E320C608cc");
+        let WETH = await IERC20.at("0x17449cD60a2406dF2AA3293E79e446882AF86f52");
+        let univ2 = "0x94f9450f823149585D5Fb11f0898924C252FbA1c";
         let routerV2 = await IUniswapV2Router02.at(univ2);
         let addr = await routerV2.factory();
         let uniFactory = await IUniswapV2Factory.at(addr);
@@ -45,22 +46,24 @@ module.exports = {
         let sync;
         if(bNewOracle){
             oracle = await FNXOracle.new();
-            await oracle.setOperator(0,account,{from:account});
+            await oracle.setOperator(3,account,{from:account});
             sync = await uniswapSync.new(oracle.address);
             console.log("oracle Address : ",oracle.address)
             console.log("uniswapSync Address : ",sync.address)
         }else{
-            oracle = await FNXOracle.at("0x9841df6b23F13B8cA99e097607a7056c77aFe939");
-            sync = await uniswapSync.at("0x4d2c33874e545115589bEb7775bcd532614258Ea");
+            oracle = await FNXOracle.at("0xcf2690DC569A9DD53c2071245d4ac050C7e37774");
+            sync = await uniswapSync.at("0xBb90cFEd1f33C899D700D1264ee041758a33B100");
         }
         let stakeimple = await stakePool.new({from:account});
         let lToken = await leveragedPool.new({from:account});
 
+        let uniswap = await UniSwapRouter.new({from:account});
+
         let lFactory = await leverageFactory.new({from:account});
-        let proxy = await fnxProxy.new(lFactory.address,{from:account});
+        proxy = await fnxProxy.new(lFactory.address,{from:account});
         lFactory = await leverageFactory.at(proxy.address);
         await lFactory.initFactoryInfo("ETH",stakeimple.address,lToken.address,fptCoin.address,rTokenImply.address,oracle.address,
-        beforeInfo.univ2,account,1,1e5,1e5,1e5,15e7,1e7,1001e5,{from:account});
+        beforeInfo.univ2,uniswap.address,account,1,1e5,1e5,1e5,15e7,1e7,1001e5,{from:account});
         await lFactory.setOperator(3,account,{from:account});
         
         /*

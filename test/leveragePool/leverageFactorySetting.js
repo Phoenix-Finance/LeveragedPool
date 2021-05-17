@@ -56,10 +56,6 @@ contract('leveragedPool', function (accounts){
         getAddr = await contracts.leveragePool.feeAddress()
         assert.equal(testAddr,getAddr,"setFeeAddress error")
         await factoryInfo.factory.setLeverageFee(100000,200000,300000);
-        let fees = await contracts.leveragePool.getLeverageFee()
-        assert.equal(fees[0].toNumber(),100000,"setLeverageFee error")
-        assert.equal(fees[1].toNumber(),200000,"setLeverageFee error")
-        assert.equal(fees[2].toNumber(),300000,"setLeverageFee error")
         await factoryInfo.factory.setRebaseTimeLimit(50);
         let reToken = await timeLimitation.at(contracts.rebaseToken[0].address)
         getAddr = await reToken.limitation()

@@ -32,8 +32,6 @@ contract('leveragedPool', function (accounts){
         fnxBalance = await beforeInfo.fnx.balanceOf(beforeInfo.pair);
         console.log("FNX Balance : ",fnxBalance.toString());
 
-        let result = await contracts.leveragePool.getLeverageFee();
-        console.log("Leverage fee : ",result[0].toString(),result[1].toString(),result[2].toString());
         let netWroth = await contracts.leveragePool.getTokenNetworths();
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         await contracts.leveragePool.rebalance();
