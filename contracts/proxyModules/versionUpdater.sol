@@ -7,8 +7,7 @@ contract versionUpdater is proxyOwner,initializable {
 
     }
     modifier versionUpdate(){
-        uint256 version = implementationVersion();
-        require(version > version(),"New version implementation is already updated!");
+        require(implementationVersion() > version(),"New version implementation is already updated!");
         _;
     }
 }

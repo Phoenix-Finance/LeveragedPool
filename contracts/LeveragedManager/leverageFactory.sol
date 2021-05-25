@@ -154,7 +154,7 @@ contract leverageFactory is leverageFactoryData{
     }
     function createFnxProxy(uint256 index) internal returns (address payable){
         proxyInfo storage curInfo = proxyinfoMap[index];
-        fnxProxy newProxy = new fnxProxy(curInfo.implementation);
+        fnxProxy newProxy = new fnxProxy(curInfo.implementation,getMultiSignatureAddress());
         curInfo.proxyList.push(address(newProxy));
         return address(newProxy);
     }

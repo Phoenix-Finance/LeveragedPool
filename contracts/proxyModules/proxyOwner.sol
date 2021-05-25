@@ -11,7 +11,7 @@ contract proxyOwner is multiSignatureClient{
     bytes32 private constant proxyOriginPosition  = keccak256("org.Finnexus.Origin.storage");
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OriginTransferred(address indexed previousOrigin, address indexed newOrigin);
-    constructor() public{
+    constructor(address multiSignature) multiSignatureClient(multiSignature) public{
         _setProxyOwner(msg.sender);
         _setProxyOrigin(tx.origin);
     }

@@ -7,7 +7,8 @@ import "../proxyModules/proxyOwner.sol";
 contract fnxProxy is proxyOwner {
     bytes32 private constant implementPositon = keccak256("org.Finnexus.implementation.storage");
     event Upgraded(address indexed implementation,uint256 indexed version);
-    constructor(address implementation_) public {
+    constructor(address implementation_,address multiSignature) proxyOwner(multiSignature) public {
+
         // Creator of the contract is admin during initialization
         (bool success,) = implementation_.delegatecall(abi.encodeWithSignature("initialize()"));
         _setImplementation(implementation_);
