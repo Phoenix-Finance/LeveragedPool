@@ -19,7 +19,7 @@ contract FPTCoin is SharedCoin {
         decimals = 18;
     }
 
-    function update() public onlyOwner versionUpdate{
+    function update() public versionUpdate{
     }
     /**
      * @dev Retrieve total locked worth. 

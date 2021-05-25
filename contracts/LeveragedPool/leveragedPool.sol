@@ -12,7 +12,7 @@ contract leveragedPool is leveragedData{
         versionUpdater.initialize();
         rebalanceTol = 105e6;
     }
-    function update() external onlyOwner versionUpdate {
+    function update() external versionUpdate {
     }
     function setSwapRouterAddress(address _swapRouter)public onlyOwner{
         require(swapRouter != _swapRouter,"swapRouter : same address");

@@ -1,5 +1,5 @@
 pragma solidity =0.5.16;
-import "../modules/Operator.sol";
+import "../proxyModules/proxyOwner.sol";
 interface IFNXOracle {
     /**
   * @notice retrieves price of an asset
@@ -14,7 +14,7 @@ interface IFNXOracle {
 //    function getSellOptionsPrice(address oToken) external view returns (uint256);
 //    function getBuyOptionsPrice(address oToken) external view returns (uint256);
 }
-contract ImportOracle is Operator{
+contract ImportOracle is proxyOwner{
     IFNXOracle internal _oracle;
     function oraclegetPrices(uint256[] memory assets) internal view returns (uint256[]memory){
         uint256[] memory prices = _oracle.getPrices(assets);

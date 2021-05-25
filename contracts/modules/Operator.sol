@@ -1,10 +1,11 @@
 pragma solidity =0.5.16;
+import "./multiSignatureClient.sol";
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * each operator can be granted exclusive access to specific functions.
  *
  */
-contract Operator {
+contract Operator is multiSignatureClient {
     mapping(uint256=>address) internal _operators;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OriginTransferred(address indexed previousOrigin, address indexed newOrigin);
@@ -53,7 +54,7 @@ contract Operator {
      * NOTE: Renouncing ownership will leave the contract without an owner,
      * thereby removing any functionality that is only available to the owner.
      */
-    function renounceOwnership() public onlyOwner {
+    function renounceOwnership() public onlyOwner validCall {
         emit OwnershipTransferred(_operators[0], address(0));
         _operators[0] = address(0);
     }

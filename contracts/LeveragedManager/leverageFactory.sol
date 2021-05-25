@@ -29,11 +29,11 @@ contract leverageFactory is leverageFactoryData{
         FPTTimeLimit = 0;
         rebaseTimeLimit = 0;
     }
-    function update() public onlyOwner versionUpdate {
+    function update() public versionUpdate {
     }
     function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _swapRouter,address _fnxSwapLib,address payable _feeAddress,uint64 _rebalanceInterval,
-             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public onlyOwner{
+             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public onlyOrigin{
                 baseCoinName = _baseCoinName;
                 proxyinfoMap[LeveragePoolID].implementation = _leveragePoolImpl;
                 proxyinfoMap[stakePoolID].implementation = _stakePoolImpl;
@@ -53,7 +53,7 @@ contract leverageFactory is leverageFactoryData{
              }
     function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
         uint256 leverageRebaseWorth)external 
-        onlyOwner returns (address payable _leveragePool){
+        onlyOrigin returns (address payable _leveragePool){
         bytes32 poolKey = getPairHash(tokenA,tokenB,leverageRatio);
         _leveragePool = leveragePoolMap[poolKey];
         if(_leveragePool == address(0)){
@@ -114,7 +114,7 @@ contract leverageFactory is leverageFactoryData{
     function getAllLeveragePool()external view returns (address payable[] memory){
         return proxyinfoMap[LeveragePoolID].proxyList;
     }
-    function setRebalanceInterval(uint64 interval) public onlyOwner{
+    function setRebalanceInterval(uint64 interval) public onlyOrigin{
         rebalanceInterval = interval;
     }
     function rebalanceAll()external rebalanceEnable onlyOperator(3) {
@@ -158,7 +158,7 @@ contract leverageFactory is leverageFactoryData{
         curInfo.proxyList.push(address(newProxy));
         return address(newProxy);
     }
-    function setInterestRate(address token,uint64 rate)public onlyOwner{
+    function setInterestRate(address token,uint64 rate)public onlyOrigin{
         address _stakePool = getStakePool(token);
         require(_stakePool != address(0),"stakePool is not found!");
         IStakePool(_stakePool).setInterestRate(rate);
@@ -170,37 +170,37 @@ contract leverageFactory is leverageFactoryData{
             Address.functionCall(curInfo.proxyList[i],data,"setContractsInfo error");
         }
     }
-    function setSwapRouterAddress(address _swapRouter)public onlyOwner{
+    function setSwapRouterAddress(address _swapRouter)public onlyOrigin{
         swapRouter = _swapRouter;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setSwapRouterAddress(address)",_swapRouter));
     }
-    function setSwapLibAddress(address _swapLib)public onlyOwner{
+    function setSwapLibAddress(address _swapLib)public onlyOrigin{
         fnxSwapLib = _swapLib;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setSwapLibAddress(address)",_swapLib));
     }
-    function setOracleAddress(address _fnxOracle)public onlyOwner{
+    function setOracleAddress(address _fnxOracle)public onlyOrigin{
         fnxOracle = _fnxOracle;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setOracleAddress(address)",_fnxOracle));
     }
-    function setFeeAddress(address payable _feeAddress)public onlyOwner{
+    function setFeeAddress(address payable _feeAddress)public onlyOrigin{
         feeAddress = _feeAddress;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setFeeAddress(address)",_feeAddress));
     }
-    function setLeverageFee(uint64 _buyFee,uint64 _sellFee,uint64 _rebalanceFee)public onlyOwner{
+    function setLeverageFee(uint64 _buyFee,uint64 _sellFee,uint64 _rebalanceFee)public onlyOrigin{
         buyFee = _buyFee;
         sellFee = _sellFee;
         rebalanceFee = _rebalanceFee;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setLeverageFee(uint256,uint256,uint256)",_buyFee,_sellFee,_rebalanceFee));
     }
-    function setRebaseTimeLimit(uint32 _rebaseTimeLimit) public onlyOwner{
+    function setRebaseTimeLimit(uint32 _rebaseTimeLimit) public onlyOrigin{
         rebaseTimeLimit = _rebaseTimeLimit;
         setContractsInfo(rebasePoolID,abi.encodeWithSignature("setTimeLimitation(uint256)",_rebaseTimeLimit));
     }
-    function setFPTTimeLimit(uint32 _FPTTimeLimit) public onlyOwner{
+    function setFPTTimeLimit(uint32 _FPTTimeLimit) public onlyOrigin{
         FPTTimeLimit = _FPTTimeLimit;
         setContractsInfo(FPTTokenID,abi.encodeWithSignature("setTimeLimitation(uint256)",_FPTTimeLimit));
     }
-    function upgradeFnxProxy(uint256 index,address implementation) public onlyOwner{
+    function upgradeFnxProxy(uint256 index,address implementation) public onlyOrigin{
         proxyInfo storage curInfo = proxyinfoMap[index];
         curInfo.implementation = implementation;
         uint256 len = curInfo.proxyList.length;

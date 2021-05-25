@@ -1,10 +1,11 @@
 pragma solidity =0.5.16;
-import "../modules/versionUpdater.sol";
+import "../proxyModules/versionUpdater.sol";
 import "../interface/IFNXOracle.sol";
 import "../rebaseToken/IRebaseToken.sol";
 import "../stakePool/IStakePool.sol";
 import "../modules/ReentrancyGuard.sol";
-contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard{
+import "../proxyModules/proxyOperator.sol";
+contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard{
     uint256 constant internal currentVersion = 2;
     function implementationVersion() public pure returns (uint256) 
     {

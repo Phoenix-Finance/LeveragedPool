@@ -4,7 +4,7 @@ pragma solidity =0.5.16;
  * FinNexus
  * Copyright (C) 2020 FinNexus Options Protocol
  */
-import "../modules/versionUpdater.sol";
+import "../proxyModules/versionUpdater.sol";
 import "./ILeverageFactory.sol";
 /**
  * @title FNX period mine pool.

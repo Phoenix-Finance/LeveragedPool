@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
-import "../modules/versionUpdater.sol";
+import "../proxyModules/versionUpdater.sol";
 import "../ERC20/Erc20Data.sol";
-import "../modules/timeLimitation.sol";
+import "../proxyModules/timeLimitation.sol";
 contract FPTData is Erc20Data,timeLimitation,versionUpdater{
     /**
     * @dev lock mechanism is used when user redeem collateral and left collateral is insufficient.

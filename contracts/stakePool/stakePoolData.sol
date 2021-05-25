@@ -1,8 +1,8 @@
 pragma solidity =0.5.16;
 import "../FPTCoin/IFPTCoin.sol";
-import "../modules/versionUpdater.sol";
+import "../proxyModules/versionUpdater.sol";
 import "../modules/ReentrancyGuard.sol";
-import "../modules/AddressPermission.sol";
+import "../proxyModules/AddressPermission.sol";
 contract stakePoolData is ImportIFPTCoin,versionUpdater,ReentrancyGuard,AddressPermission{
     uint256 constant internal currentVersion = 0;
     function implementationVersion() public pure returns (uint256) 

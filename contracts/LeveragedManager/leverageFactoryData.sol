@@ -4,13 +4,14 @@ pragma solidity =0.5.16;
  * FinNexus
  * Copyright (C) 2020 FinNexus Options Protocol
  */
-import "../modules/versionUpdater.sol";
+import "../proxyModules/versionUpdater.sol";
+import "../proxyModules/proxyOperator.sol";
 /**
  * @title FNX period mine pool.
  * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
  *
  */
-contract leverageFactoryData is versionUpdater{
+contract leverageFactoryData is versionUpdater,proxyOperator{
     uint256 constant internal currentVersion = 0;
     function implementationVersion() public pure returns (uint256) 
     {
