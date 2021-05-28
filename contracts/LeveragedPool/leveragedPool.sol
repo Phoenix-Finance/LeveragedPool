@@ -50,7 +50,7 @@ contract leveragedPool is leveragedData{
     function getHedgeInfo() external view returns (address,address,address,uint256,uint256) {
         return (hedgeCoin.token,address(hedgeCoin.stakePool),address(hedgeCoin.leverageToken),hedgeCoin.leverageRate,hedgeCoin.rebalanceWorth);
     }
-    function setLeverageFee(uint256 _buyFee,uint256 _sellFee,uint256 _rebalanceFee) onlyOperator2(0,1) external{
+    function setLeverageFee(uint256 _buyFee,uint256 _sellFee,uint256 _rebalanceFee) OwnerOrOrigin external{
         buyFee = _buyFee;
         sellFee = _sellFee;
         rebalanceFee = _rebalanceFee;
@@ -284,7 +284,7 @@ contract leveragedPool is leveragedData{
             return (newUnderlying-oldUnderlying,0);
         }
     }
-    function rebalance() getUnderlyingPrice onlyOperator2(0,1) external {
+    function rebalance() getUnderlyingPrice OwnerOrOrigin external {
         _rebalance();
     }
     function _rebalance() internal {

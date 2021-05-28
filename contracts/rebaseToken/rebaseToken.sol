@@ -14,7 +14,7 @@ contract rebaseToken is rebaseTokenData {
         Erc20InfoList.push(Erc20Info(0,rebaseDecimal,0));
         decimals = 18;
     }
-    function update() public onlyOwner versionUpdate {
+    function update() public versionUpdate {
     }
     function newErc20(uint256 leftAmount) external onlyManager {
         Erc20InfoList[Erc20InfoList.length-1].leftAmount = leftAmount;

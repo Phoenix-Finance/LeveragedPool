@@ -33,7 +33,7 @@ contract leverageFactory is leverageFactoryData{
     }
     function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
         address _rebaseTokenImpl,address _fnxOracle,address _swapRouter,address _fnxSwapLib,address payable _feeAddress,uint64 _rebalanceInterval,
-             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public onlyOrigin{
+             uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public originOnce{
                 baseCoinName = _baseCoinName;
                 proxyinfoMap[LeveragePoolID].implementation = _leveragePoolImpl;
                 proxyinfoMap[stakePoolID].implementation = _stakePoolImpl;

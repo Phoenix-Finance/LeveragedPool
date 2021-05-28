@@ -11,7 +11,7 @@ contract stakePool is stakePoolData{
         _interestRate = interestrate;
         _defaultRate = interestrate;
     }
-    function update() public onlyOwner versionUpdate{
+    function update() public versionUpdate{
     }
     function poolInterest()public view returns (uint256){
         if(_totalSupply == 0){
