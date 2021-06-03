@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
-import "./FNXSwapRouter.sol";
+import "./PHXSwapRouter.sol";
 import "../uniswap/IUniswapV2Router02.sol";
-contract UniSwapRouter is FNXSwapRouter{
+contract inchSwapRouter is PHXSwapRouter{
     constructor()public{
 
     }

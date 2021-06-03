@@ -1,5 +1,5 @@
 pragma solidity =0.5.16;
-import "./multiSignatureClient.sol";
+import "../multiSignature/multiSignatureClient.sol";
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * each operator can be granted exclusive access to specific functions.

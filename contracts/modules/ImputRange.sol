@@ -14,10 +14,10 @@ contract ImputRange is Operator {
     }
     /**
      * @dev Determine whether the input amount is within the valid range
-     * @param Amount Test value which is user input
+     * @param amount Test value which is user input
      */
-    function isInputAmountInRange(uint256 Amount)public view returns (bool){
-        return(maxAmount>=Amount && minAmount<=Amount);
+    function isInputAmountInRange(uint256 amount)public view returns (bool){
+        return(maxAmount>=amount && minAmount<=amount);
     }
     /*
     function isInputAmountSmaller(uint256 Amount)public view returns (bool){

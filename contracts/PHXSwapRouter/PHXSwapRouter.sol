@@ -1,7 +1,7 @@
 pragma solidity =0.5.16;
 import "../modules/SafeMath.sol";
 import "../ERC20/safeErc20.sol";
-contract FNXSwapRouter{
+contract PHXSwapRouter{
     uint256 constant internal calDecimal = 1e18; 
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
     using SafeMath for uint256;

@@ -4,7 +4,7 @@ pragma solidity =0.5.16;
  * @title  fnxProxy Contract
 
  */
-import "../modules/multiSignatureClient.sol";
+import "../multiSignature/multiSignatureClient.sol";
 contract proxyOwner is multiSignatureClient{
     bytes32 private constant versionPositon = keccak256("org.Finnexus.version.storage");
     bytes32 private constant proxyOwnerPosition  = keccak256("org.Finnexus.Owner.storage");
@@ -67,7 +67,7 @@ contract proxyOwner is multiSignatureClient{
     }
     modifier originOnce() {
         require (msg.sender == txOrigin(),"proxyOwner: caller is not the tx origin!");
-        uint256 key = oncePosition+uint256(msg.sig);
+        uint256 key = oncePosition+uint32(msg.sig);
         require (getValue(key)==0, "proxyOwner : This function must be invoked only once!");
         saveValue(key,1);
         _;
