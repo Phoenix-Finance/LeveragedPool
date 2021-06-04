@@ -24,7 +24,7 @@ contract multiSignatureClient{
         address multiSign = getMultiSignatureAddress();
         uint256 index = getValue(uint256(msgHash));
         uint256 newIndex = IMultiSignature(multiSign).getValidSignature(msgHash,index);
-        require(newIndex > 0, "multiSignatureClient : This tx is not aprroved");
+        require(newIndex > index, "multiSignatureClient : This tx is not aprroved");
         saveValue(uint256(msgHash),newIndex);
     }
     function saveValue(uint256 position,uint256 value) internal 

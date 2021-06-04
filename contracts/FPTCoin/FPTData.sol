@@ -2,6 +2,7 @@ pragma solidity =0.5.16;
 import "../proxyModules/versionUpdater.sol";
 import "../ERC20/Erc20Data.sol";
 import "../proxyModules/timeLimitation.sol";
+import "../acceleratedMinePool/IAcceleratedMinePool.sol";
 contract FPTData is Erc20Data,timeLimitation,versionUpdater{
     /**
     * @dev lock mechanism is used when user redeem collateral and left collateral is insufficient.
@@ -15,6 +16,7 @@ contract FPTData is Erc20Data,timeLimitation,versionUpdater{
         return currentVersion;
     }
     uint256 internal _totalLockedWorth;
+    IAcceleratedMinePool public minePool;
     mapping (address => uint256) internal lockedBalances;
     mapping (address => uint256) internal lockedTotalWorth;
     /**

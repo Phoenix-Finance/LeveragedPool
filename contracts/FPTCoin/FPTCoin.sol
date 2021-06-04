@@ -60,6 +60,33 @@ contract FPTCoin is SharedCoin {
         _addLockBalance(account,amount,lockedWorth);
     }
     /**
+     * @dev Move user's FPT to 'recipient' balance, a interface in ERC20. 
+     * @param recipient recipient's account.
+     * @param amount amount of FPT.
+     */ 
+    function transfer(address recipient, uint256 amount)public returns (bool){
+        require(address(minePool) != address(0),"FnxMinePool is not set");
+        if(SharedCoin.transfer(recipient,amount)){
+            minePool.transferFPTCoin(msg.sender,recipient);
+            return true;
+        }
+        return false;
+    }
+        /**
+     * @dev Move sender's FPT to 'recipient' balance, a interface in ERC20. 
+     * @param sender sender's account.
+     * @param recipient recipient's account.
+     * @param amount amount of FPT.
+     */ 
+    function transferFrom(address sender, address recipient, uint256 amount)public returns (bool){
+        require(address(minePool) != address(0),"FnxMinePool is not set");
+        if(SharedCoin.transferFrom(sender,recipient,amount)){
+            minePool.transferFPTCoin(sender,recipient);
+            return true;            
+        }
+        return false;
+    }
+    /**
      * @dev burn user's FPT when user redeem FPTCoin. 
      * @param account user's account.
      * @param amount amount of FPT.
@@ -68,6 +95,7 @@ contract FPTCoin is SharedCoin {
         //require(address(_FnxMinePool) != address(0),"FnxMinePool is not set");
         //_FnxMinePool.burnMinerCoin(account,amount);
         SharedCoin._burn(account,amount);
+        minePool.changeFPTStake(account);
     }
     /**
      * @dev mint user's FPT when user add collateral. 
@@ -76,6 +104,7 @@ contract FPTCoin is SharedCoin {
      */ 
     function mint(address account, uint256 amount) public onlyManager {
         SharedCoin._mint(account,amount);
+        minePool.changeFPTStake(account);
     }
     /**
      * @dev An auxiliary function, add user's locked balance. 
