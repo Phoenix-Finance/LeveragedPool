@@ -3,6 +3,11 @@ import "../proxyModules/versionUpdater.sol";
 import "../ERC20/Erc20Data.sol";
 import "../proxyModules/timeLimitation.sol";
 import "../acceleratedMinePool/IAcceleratedMinePool.sol";
+/**
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
+ */
 contract FPTData is Erc20Data,timeLimitation,versionUpdater{
     /**
     * @dev lock mechanism is used when user redeem collateral and left collateral is insufficient.

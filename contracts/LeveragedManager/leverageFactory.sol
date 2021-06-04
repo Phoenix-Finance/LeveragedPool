@@ -1,12 +1,12 @@
 pragma solidity =0.5.16;
 /**
  * SPDX-License-Identifier: GPL-3.0-or-later
- * FinNexus
- * Copyright (C) 2020 FinNexus Options Protocol
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
  */
 import "../modules/SafeMath.sol";
 import "./leverageFactoryData.sol";
-import "../proxy/fnxProxy.sol";
+import "../proxy/phxProxy.sol";
 import "../leveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
 import "../ERC20/IERC20.sol";
@@ -66,7 +66,7 @@ contract leverageFactory is leverageFactoryData{
         address _stakePoolA = getStakePool(tokenA);
         address _stakePoolB = getStakePool(tokenB);
         require(_stakePoolA!=address(0) && _stakePoolB!=address(0),"Stake pool is not created");
-        _leveragePool = createFnxProxy(LeveragePoolID);
+        _leveragePool = createPhxProxy(LeveragePoolID);
         IStakePool(_stakePoolA).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
         IStakePool(_stakePoolB).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
         setLeveragePoolInfo_sub(_stakePoolA,_stakePoolB,_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth);
@@ -91,7 +91,7 @@ contract leverageFactory is leverageFactoryData{
             rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth);
     }
     function createRebaseToken(address leveragePool,address token,string memory name)internal returns(address){
-        address payable newToken = createFnxProxy(rebasePoolID);
+        address payable newToken = createPhxProxy(rebasePoolID);
         IRebaseToken rebaseToken = IRebaseToken(newToken);
         Operator(newToken).setManager(leveragePool);
         rebaseToken.changeTokenName(name,name,token);
@@ -138,7 +138,7 @@ contract leverageFactory is leverageFactoryData{
         address payable stakePool = stakePoolMap[token];
         if(stakePool == address(0)){
             address fptCoin = createFptCoin(token);
-            stakePool = createFnxProxy(stakePoolID);
+            stakePool = createPhxProxy(stakePoolID);
             IStakePool(stakePool).setPoolInfo(fptCoin,token,_interestrate);
             Operator(fptCoin).setManager(stakePool);
             stakePoolMap[token] = stakePool;
@@ -146,15 +146,15 @@ contract leverageFactory is leverageFactoryData{
         return stakePool;
     }
     function createFptCoin(address token)internal returns(address){
-        address payable newCoin = createFnxProxy(FPTTokenID);
+        address payable newCoin = createPhxProxy(FPTTokenID);
         string memory tokenName = (token == address(0)) ? string(abi.encodePacked("FPT_", baseCoinName)):
                  string(abi.encodePacked("FPT_",IERC20(token).symbol()));
         IFPTCoin(newCoin).changeTokenName(tokenName,tokenName,IERC20(token).decimals());
         return newCoin;
     }
-    function createFnxProxy(uint256 index) internal returns (address payable){
+    function createPhxProxy(uint256 index) internal returns (address payable){
         proxyInfo storage curInfo = proxyinfoMap[index];
-        fnxProxy newProxy = new fnxProxy(curInfo.implementation,getMultiSignatureAddress());
+        phxProxy newProxy = new phxProxy(curInfo.implementation,getMultiSignatureAddress());
         curInfo.proxyList.push(address(newProxy));
         return address(newProxy);
     }
@@ -200,12 +200,12 @@ contract leverageFactory is leverageFactoryData{
         FPTTimeLimit = _FPTTimeLimit;
         setContractsInfo(FPTTokenID,abi.encodeWithSignature("setTimeLimitation(uint256)",_FPTTimeLimit));
     }
-    function upgradeFnxProxy(uint256 index,address implementation) public onlyOrigin{
+    function upgradePhxProxy(uint256 index,address implementation) public onlyOrigin{
         proxyInfo storage curInfo = proxyinfoMap[index];
         curInfo.implementation = implementation;
         uint256 len = curInfo.proxyList.length;
         for(uint256 i = 0;i<len;i++){
-            fnxProxy(curInfo.proxyList[i]).upgradeTo(implementation);
+            phxProxy(curInfo.proxyList[i]).upgradeTo(implementation);
         }        
     }
 

@@ -1,10 +1,14 @@
 pragma solidity =0.5.16;
 import "./SharedCoin.sol";
 import "../modules/SafeMath.sol";
-
+/**
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
+ */
 
 /**
- * @title FPTCoin is finnexus collateral Pool token, implement ERC20 interface.
+ * @title FPTCoin is Phoenix collateral Pool token, implement ERC20 interface.
  * @dev ERC20 token. Its inside value is collatral pool net worth.
  *
  */

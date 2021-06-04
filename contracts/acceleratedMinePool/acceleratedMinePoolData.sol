@@ -1,8 +1,8 @@
 pragma solidity =0.5.16;
 /**
  * SPDX-License-Identifier: GPL-3.0-or-later
- * FinNexus
- * Copyright (C) 2020 FinNexus Options Protocol
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
  */
 import "../proxyModules/proxyOperator.sol";
 import "../proxyModules/AddressWhiteList.sol";
@@ -10,7 +10,7 @@ import "../modules/ReentrancyGuard.sol";
 import "../proxyModules/versionUpdater.sol";
 import "../modules/safeTransfer.sol";
 /**
- * @title new Finnexus Options Pool token mine pool.
+ * @title new Phoenix Options Pool token mine pool.
  * @dev A smart-contract which distribute some mine coins when you stake some FPT-A and FPT-B coins.
  *      Users who both stake some FPT-A and FPT-B coins will get more bonus in mine pool.
  *      Users who Lock FPT-B coins will get several times than normal miners.

@@ -1,6 +1,11 @@
 pragma solidity =0.5.16;
 import "../modules/SafeMath.sol";
 import "../ERC20/safeErc20.sol";
+/**
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
+ */
 contract PHXSwapRouter{
     uint256 constant internal calDecimal = 1e18; 
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);

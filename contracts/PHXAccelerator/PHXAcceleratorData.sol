@@ -1,4 +1,9 @@
 pragma solidity =0.5.16;
+/**
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
+ */
 import "../proxyModules/versionUpdater.sol";
 import "../proxyModules/timeLimitation.sol";
 import "../proxyModules/Halt.sol";

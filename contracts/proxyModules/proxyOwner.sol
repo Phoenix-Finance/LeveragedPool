@@ -1,15 +1,15 @@
 pragma solidity =0.5.16;
 
 /**
- * @title  fnxProxy Contract
+ * @title  proxyOwner Contract
 
  */
 import "../multiSignature/multiSignatureClient.sol";
 contract proxyOwner is multiSignatureClient{
-    bytes32 private constant versionPositon = keccak256("org.Finnexus.version.storage");
-    bytes32 private constant proxyOwnerPosition  = keccak256("org.Finnexus.Owner.storage");
-    bytes32 private constant proxyOriginPosition  = keccak256("org.Finnexus.Origin.storage");
-    uint256 private constant oncePosition  = uint256(keccak256("org.Finnexus.Origin.Once"));
+    bytes32 private constant versionPositon = keccak256("org.Phoenix.version.storage");
+    bytes32 private constant proxyOwnerPosition  = keccak256("org.Phoenix.Owner.storage");
+    bytes32 private constant proxyOriginPosition  = keccak256("org.Phoenix.Origin.storage");
+    uint256 private constant oncePosition  = uint256(keccak256("org.Phoenix.Once.storage"));
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OriginTransferred(address indexed previousOrigin, address indexed newOrigin);
     constructor(address multiSignature) multiSignatureClient(multiSignature) public{

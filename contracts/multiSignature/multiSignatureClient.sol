@@ -1,9 +1,14 @@
 pragma solidity =0.5.16;
+/**
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
+ */
 interface IMultiSignature{
     function getValidSignature(bytes32 msghash,uint256 lastIndex) external view returns(uint256);
 }
 contract multiSignatureClient{
-    uint256 private constant multiSignaturePositon = uint256(keccak256("org.Finnexus.multiSignature.storage"));
+    uint256 private constant multiSignaturePositon = uint256(keccak256("org.Phoenix.multiSignature.storage"));
     constructor(address multiSignature) public {
         require(multiSignature != address(0),"multiSignatureClient : Multiple signature contract address is zero!");
         saveValue(multiSignaturePositon,uint256(multiSignature));

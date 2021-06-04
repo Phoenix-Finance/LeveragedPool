@@ -1,8 +1,8 @@
 pragma solidity >=0.5.16;
 /**
  * SPDX-License-Identifier: GPL-3.0-or-later
- * FinNexus
- * Copyright (C) 2020 FinNexus Options Protocol
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
  */
 import "./Halt.sol";
 import "../modules/whiteList.sol";

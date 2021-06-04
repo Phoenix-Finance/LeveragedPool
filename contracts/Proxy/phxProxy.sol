@@ -1,11 +1,16 @@
 pragma solidity =0.5.16;
 /**
- * @title  fnxProxy Contract
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ * Phoenix
+ * Copyright (C) 2020 Phoenix Options Protocol
+ */
+/**
+ * @title  phxProxy Contract
 
  */
 import "../proxyModules/proxyOwner.sol";
-contract fnxProxy is proxyOwner {
-    bytes32 private constant implementPositon = keccak256("org.Finnexus.implementation.storage");
+contract phxProxy is proxyOwner {
+    bytes32 private constant implementPositon = keccak256("org.Phoenix.implementation.storage");
     event Upgraded(address indexed implementation,uint256 indexed version);
     constructor(address implementation_,address multiSignature) proxyOwner(multiSignature) public {
 
