@@ -1,6 +1,6 @@
 pragma solidity =0.5.16;
 import "../proxyModules/proxyOwner.sol";
-interface IFNXOracle {
+interface IPHXOracle {
     /**
   * @notice retrieves price of an asset
   * @dev function to get price for an asset
@@ -15,7 +15,7 @@ interface IFNXOracle {
 //    function getBuyOptionsPrice(address oToken) external view returns (uint256);
 }
 contract ImportOracle is proxyOwner{
-    IFNXOracle internal _oracle;
+    IPHXOracle internal _oracle;
     function oraclegetPrices(uint256[] memory assets) internal view returns (uint256[]memory){
         uint256[] memory prices = _oracle.getPrices(assets);
         uint256 len = assets.length;
@@ -44,6 +44,6 @@ contract ImportOracle is proxyOwner{
         return address(_oracle);
     }
     function setOracleAddress(address oracle)public onlyOwner{
-        _oracle = IFNXOracle(oracle);
+        _oracle = IPHXOracle(oracle);
     }
 }

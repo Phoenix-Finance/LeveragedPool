@@ -1,6 +1,6 @@
 pragma solidity =0.5.16;
 import "../proxyModules/versionUpdater.sol";
-import "../interface/IFNXOracle.sol";
+import "../interface/IPHXOracle.sol";
 import "../rebaseToken/IRebaseToken.sol";
 import "../stakePool/IStakePool.sol";
 import "../modules/ReentrancyGuard.sol";

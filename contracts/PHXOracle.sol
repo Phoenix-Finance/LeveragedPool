@@ -1,6 +1,6 @@
 pragma solidity =0.5.16;
 import "./modules/Operator.sol";
-contract FNXOracle is Operator {
+contract PHXOracle is Operator {
     mapping(uint256 => uint256) internal priceMap;
     /**
       * @notice set price of an asset
