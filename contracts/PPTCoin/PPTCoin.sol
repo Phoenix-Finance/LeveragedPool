@@ -22,7 +22,9 @@ contract PPTCoin is SharedCoin {
         _totalSupply = 0;
         decimals = 18;
     }
-
+    function setMinePool(address acceleratedMinePool) external onlyOwner{
+        minePool = IAcceleratedMinePool(acceleratedMinePool);
+    }
     function update() public versionUpdate{
     }
     /**

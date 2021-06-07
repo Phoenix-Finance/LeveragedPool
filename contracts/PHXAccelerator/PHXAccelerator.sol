@@ -14,8 +14,17 @@ contract PHXAccelerator is PHXAcceleratorData{
      */
     constructor (address multiSignature) proxyOwner(multiSignature) public{
     }
-
+    function initMineLockedInfo(uint256 _startTime,uint256 _periodTime,
+        uint256 _maxPeriodLimit,uint256 _flexibleExpired) external originOnce {
+        startTime = _startTime;
+        period = _periodTime;
+        maxPeriodLimit = _maxPeriodLimit;
+        flexibleExpired = _flexibleExpired;
+    }
     function update() external versionUpdate {
+    }
+    function getAcceleratedBalance(address account,address minePool)external returns(uint256,uint64){
+        return (userInfoMap[account].acceleratedBalance[minePool],userInfoMap[account].maxPeriodID);
     }
     function getAcceleratorPeriodInfo()external returns (uint256,uint256){
         return (startTime,period);

@@ -35,7 +35,7 @@ contract leverageFactory is leverageFactoryData{
     }
     function update() public versionUpdate {
     }
-    function setImplementAddress(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _PPTCoinImpl,
+    function setImplementAddress(string memory _baseCoinName,address payable _feeAddress,address rebaseOperator,address _stakePoolImpl,address _leveragePoolImpl,address _PPTCoinImpl,
         address _rebaseTokenImpl,address acceleratedMinePool,address PHXAccelerator,address _phxOracle)public originOnce{
         baseCoinName = _baseCoinName;
         proxyinfoMap[LeveragePoolID].implementation = _leveragePoolImpl;
@@ -45,12 +45,13 @@ contract leverageFactory is leverageFactoryData{
         proxyinfoMap[MinePoolID].implementation = acceleratedMinePool;
         accelerator = PHXAccelerator;  
         phxOracle = _phxOracle;
+        feeAddress = _feeAddress;
+        _operators[1] = rebaseOperator;
     }
-    function initFactoryInfo(address _swapRouter,address _SwapLib,address payable _feeAddress,uint64 _rebalanceInterval,
+    function initFactoryInfo(address _swapRouter,address _SwapLib,uint64 _rebalanceInterval,
              uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public originOnce{
                 swapRouter = _swapRouter;
                 phxSwapLib = _SwapLib;
-                feeAddress = _feeAddress;
                 buyFee = _buyFee;
                 sellFee = _sellFee;
                 rebalanceFee = _rebalanceFee;
@@ -161,6 +162,7 @@ contract leverageFactory is leverageFactoryData{
         IPPTCoin(newCoin).setTimeLimitation(PPTTimeLimit);
         address minePool = createAcceleratedMinePool();
         proxyOperator(minePool).setManager(newCoin);
+        IPPTCoin(newCoin).setMinePool(minePool);
         return newCoin;
     }
     function createAcceleratedMinePool()internal returns(address){

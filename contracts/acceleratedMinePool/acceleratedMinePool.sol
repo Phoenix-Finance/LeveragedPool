@@ -407,14 +407,14 @@ contract acceleratedMinePool is acceleratedMinePoolData {
     }
 
     function changePPTBalance(address account) internal {
-        (uint256 acceleratedStake,uint256 acceleratedPeriod) = accelerator.getAcceleratedBalance(account);
+        (uint256 acceleratedStake,uint256 acceleratedPeriod) = accelerator.getAcceleratedBalance(account,address(this));
         removeDistribution(account,acceleratedStake,acceleratedPeriod);
-        userInfoMap[account].pptBalance = IERC20(_operators[2]).balanceOf(account);
+        userInfoMap[account].pptBalance = IERC20(_operators[managerIndex]).balanceOf(account);
         addDistribution(account,acceleratedStake,acceleratedPeriod);
     }
     function changeAcceleratedInfo(address account,uint256 oldAcceleratedStake,uint64 oldAcceleratedPeriod) public onlyAccelerator{
         removeDistribution(account,oldAcceleratedStake,oldAcceleratedPeriod);
-        (uint256 acceleratedStake,uint64 acceleratedPeriod) = accelerator.getAcceleratedBalance(account);
+        (uint256 acceleratedStake,uint64 acceleratedPeriod) = accelerator.getAcceleratedBalance(account,address(this));
         addDistribution(account,acceleratedStake,acceleratedPeriod);
     }
     /**
@@ -507,7 +507,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         if (_time<acceleratorStart){
             return 0;
         }
-        return _time.sub(acceleratorStart).div(acceleratorPeriod)+1;
+        return _time.sub(acceleratorStart)/acceleratorPeriod+1;
     }
         /**
      * @dev convert period ID to period's finish timestamp.

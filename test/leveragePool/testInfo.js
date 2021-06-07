@@ -64,14 +64,15 @@ module.exports = {
         let uniswap = await UniSwapRouter.new({from:account});
         let accelerator = await PHXAccelerator.new(multiSign.address,{from:account});
         let acceleratorProxy = await phxProxy.new(accelerator.address,multiSign.address,{from:account});
-
+        accelerator = await PHXAccelerator.at(acceleratorProxy.address)
+        await accelerator.initMineLockedInfo(1622995200,86400*90,12,86400*15);
         let minePool = await acceleratedMinePool.new(multiSign.address,{from:account})
         let lFactory = await leverageFactory.new(multiSign.address,{from:account});
         proxy = await phxProxy.new(lFactory.address,multiSign.address,{from:account});
         lFactory = await leverageFactory.at(proxy.address);
-        await lFactory.setImplementAddress("ETH",stakeimple.address,lToken.address,pptCoin.address,
+        await lFactory.setImplementAddress("ETH",account,account,stakeimple.address,lToken.address,pptCoin.address,
             rTokenImply.address,minePool.address,acceleratorProxy.address,oracle.address)
-        await lFactory.initFactoryInfo(beforeInfo.univ2,uniswap.address,account,1,1e5,1e5,1e5,15e7,1e7,1001e5,{from:account});
+        await lFactory.initFactoryInfo(beforeInfo.univ2,uniswap.address,1,1e5,1e5,1e5,15e7,1e7,1001e5,{from:account});
         await this.multiSignatureAndSend(multiSign,lFactory,"setOperator",account,accounts,1,account)
         let operator = await lFactory.getOperator(1)
         console.log("operator address",operator)

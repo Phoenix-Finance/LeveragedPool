@@ -12,6 +12,7 @@ interface IPPTCoin {
     function totalSupply() external view returns (uint256);
     function mint(address account, uint256 amount) external;
     function burn(address account, uint256 amount) external;
+    function setMinePool(address acceleratedMinePool) external;
 }
 contract ImportIPPTCoin is Operator{
     IPPTCoin internal _PPTCoin;
