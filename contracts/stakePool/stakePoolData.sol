@@ -4,12 +4,12 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../FPTCoin/IFPTCoin.sol";
+import "../PPTCoin/IPPTCoin.sol";
 import "../proxyModules/versionUpdater.sol";
 import "../modules/ReentrancyGuard.sol";
 import "../proxyModules/AddressPermission.sol";
-contract stakePoolData is ImportIFPTCoin,versionUpdater,ReentrancyGuard,AddressPermission{
-    uint256 constant internal currentVersion = 0;
+contract stakePoolData is ImportIPPTCoin,versionUpdater,ReentrancyGuard,AddressPermission{
+    uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;

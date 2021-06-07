@@ -7,6 +7,7 @@ import "./proxyOwner.sol";
  */
 contract proxyOperator is proxyOwner {
     mapping(uint256=>address) internal _operators;
+    uint256 private constant managerIndex = 0;
     event OperatorTransferred(address indexed previousOperator, address indexed newOperator,uint256 indexed index);
     modifier onlyManager() {
         require(msg.sender == _operators[0], "Operator: caller is not the manager");
@@ -26,7 +27,7 @@ contract proxyOperator is proxyOwner {
         _;
     }
     function setManager(address newManager) public onlyOwner{
-        _setOperator(0,newManager);
+        _setOperator(managerIndex,newManager);
     }
     /**
      * @dev modify indexed operator by owner. 
@@ -34,7 +35,7 @@ contract proxyOperator is proxyOwner {
      */
     function setOperator(uint256 index,address newAddress)public OwnerOrOrigin{
         require(index>0, "Index must greater than 0");
-        _setOperator(0,newAddress);
+        _setOperator(index,newAddress);
     }
     function _setOperator(uint256 index,address newAddress) internal {
         emit OperatorTransferred(_operators[index], newAddress,index);

@@ -44,7 +44,7 @@ contract('leveragedPool', function (accounts){
         let prices = [priceA,priceB]
         console.log(priceA.toString(),priceB.toString());
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);
-        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0]);
+        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0],accounts);
         let testAddr = "0x9d3943c9c360aD3928B8d9EA18fEAac0b651963b";
         await factoryInfo.factory.setUniswapAddress(testAddr);
         let getAddr = await contracts.leveragePool.IUniswap()
@@ -64,11 +64,11 @@ contract('leveragedPool', function (accounts){
         getAddr = await reToken.limitation()
         assert.equal(getAddr.toNumber(),50,"setFeeAddress error")
         await factoryInfo.factory.setFPTTimeLimit(40);
-        let fptAddr = await contracts.stakepool[0].getFPTCoinAddress()
+        let fptAddr = await contracts.stakepool[0].getPPTCoinAddress()
         reToken = await timeLimitation.at(fptAddr)
         getAddr = await reToken.limitation()
         assert.equal(getAddr.toNumber(),40,"setFeeAddress error")
-        fptAddr = await contracts.stakepool[1].getFPTCoinAddress()
+        fptAddr = await contracts.stakepool[1].getPPTCoinAddress()
         reToken = await timeLimitation.at(fptAddr)
         getAddr = await reToken.limitation()
         assert.equal(getAddr.toNumber(),40,"setFeeAddress error")

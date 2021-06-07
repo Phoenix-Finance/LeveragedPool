@@ -2,8 +2,9 @@ pragma solidity =0.5.16;
 import "../interface/IPHXOracle.sol";
 import "../ERC20/safeErc20.sol";
 import "../uniswap/IUniswapV2Pair.sol";
-contract uniswapSync is ImportOracle {
+contract uniswapSync {
     using SafeERC20 for IERC20;
+    IPHXOracle internal _oracle;
     constructor(address oracle) public {
         _oracle = IPHXOracle(oracle);
     } 
@@ -49,5 +50,18 @@ contract uniswapSync is ImportOracle {
                 uniswapPair.sync();
             }
         }
+    }
+    function oraclegetPrices(uint256[] memory assets) internal view returns (uint256[]memory){
+        uint256[] memory prices = _oracle.getPrices(assets);
+        uint256 len = assets.length;
+        for (uint i=0;i<len;i++){
+        require(prices[i] >= 100 && prices[i] <= 1e30,"oracle price error");
+        }
+        return prices;
+    }
+    function oraclePrice(address asset) internal view returns (uint256){
+        uint256 price = _oracle.getPrice(asset);
+        require(price >= 100 && price <= 1e30,"oracle price error");
+        return price;
     }
 }

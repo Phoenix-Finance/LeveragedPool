@@ -7,8 +7,9 @@ pragma solidity =0.5.16;
 import "../ERC20/safeErc20.sol";
 import "../proxyModules/versionUpdater.sol";
 import "../proxyModules/timeLimitation.sol";
-contract rebaseTokenData is versionUpdater,timeLimitation{
-    uint256 constant internal currentVersion = 0;
+import "../proxyModules/proxyOperator.sol";
+contract rebaseTokenData is versionUpdater,proxyOperator,timeLimitation{
+    uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;

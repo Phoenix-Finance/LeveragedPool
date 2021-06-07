@@ -7,12 +7,12 @@ pragma solidity =0.5.16;
 import "../proxyModules/versionUpdater.sol";
 import "./ILeverageFactory.sol";
 /**
- * @title FNX period mine pool.
- * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
+ * @title leverage contract Router.
+ * @dev A smart-contract which manage leverage smart-contract's and peripheries.
  *
  */
 contract leverageRouterData is versionUpdater {
-    uint256 constant internal currentVersion = 0;
+    uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;

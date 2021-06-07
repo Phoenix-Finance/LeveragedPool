@@ -47,7 +47,7 @@ contract('leveragedPool', function (accounts){
         let spool = await stakePool.at(spoolAddress);
         let address = await spool.poolToken();
         console.log(fnxCoin.address,address);
-        let fpt1 = await spool.getFPTCoinAddress();
+        let fpt1 = await spool.getPPTCoinAddress();
         fpt1 = await FPTCoin.at(fpt1);
         console.log(fpt1.address,await fpt1.name(),await fpt1.symbol());
         await lFactory.createStatePool(eth,1e5);
@@ -55,7 +55,7 @@ contract('leveragedPool', function (accounts){
         spool = await stakePool.at(spoolAddress);
         address = await spool.poolToken();
         console.log(address);
-        fpt1 = await spool.getFPTCoinAddress();
+        fpt1 = await spool.getPPTCoinAddress();
         fpt1 = await FPTCoin.at(fpt1);
         console.log(fpt1.address,await fpt1.name(),await fpt1.symbol());
 

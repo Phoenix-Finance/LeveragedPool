@@ -3,7 +3,7 @@ interface IStakePool {
     function modifyPermission(address addAddress,uint256 permission)external;
     function poolToken()external view returns (address);
     function loan(address account) external view returns(uint256);
-    function FPTCoin()external view returns (address);
+    function PPTCoin()external view returns (address);
     function interestRate()external view returns (uint64);
     function setInterestRate(uint64 interestrate)external;
     function interestInflation(uint64 inflation)external;
@@ -13,5 +13,5 @@ interface IStakePool {
     function borrowAndInterest(uint256 amount) external;
     function repay(uint256 amount,bool bAll) external payable;
     function repayAndInterest(uint256 amount) external payable;
-    function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) external;
+    function setPoolInfo(address PPTToken,address stakeToken,uint64 interestrate) external;
 }

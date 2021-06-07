@@ -10,8 +10,10 @@ import "./stakePoolData.sol";
 contract stakePool is stakePoolData{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    function setPoolInfo(address fptToken,address stakeToken,uint64 interestrate) public onlyOwner{
-        _FPTCoin = IFPTCoin(fptToken);
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
+    }
+    function setPoolInfo(address PPTToken,address stakeToken,uint64 interestrate) public onlyOwner{
+        _PPTCoin = IPPTCoin(PPTToken);
         _poolToken = stakeToken;
         _interestRate = interestrate;
         _defaultRate = interestrate;
@@ -95,11 +97,11 @@ contract stakePool is stakePoolData{
         _totalSupply = _totalSupply.add(_loan.mul(_interestRate).div(calDecimal));
         emit RepayAndInterest(msg.sender,_poolToken,amount,_loan);
     }
-    function FPTTotalSuply()public view returns (uint256){
-        return _FPTCoin.totalSupply();
+    function PPTTotalSuply()public view returns (uint256){
+        return _PPTCoin.totalSupply();
     }
     function tokenNetworth() public view returns (uint256){
-        uint256 tokenNum = FPTTotalSuply();
+        uint256 tokenNum = PPTTotalSuply();
         return (tokenNum > 0 ) ? _totalSupply.mul(calDecimal)/tokenNum : calDecimal;
     }
     function stake(uint256 amount) public payable nonReentrant {
@@ -108,7 +110,7 @@ contract stakePool is stakePoolData{
         uint256 netWorth = tokenNetworth();
         uint256 mintAmount = amount.mul(calDecimal)/netWorth;
         _totalSupply = _totalSupply.add(amount);
-        _FPTCoin.mint(msg.sender,mintAmount);
+        _PPTCoin.mint(msg.sender,mintAmount);
         emit Stake(msg.sender,_poolToken,amount,mintAmount);
     }
     function unstake(uint256 amount) public nonReentrant {
@@ -116,7 +118,7 @@ contract stakePool is stakePoolData{
         uint256 netWorth = tokenNetworth();
         uint256 redeemAmount = netWorth.mul(amount)/calDecimal;
         require(redeemAmount<=poolBalance(),"Available pool liquidity is unsufficient");
-        _FPTCoin.burn(msg.sender,amount);
+        _PPTCoin.burn(msg.sender,amount);
         _totalSupply = _totalSupply.sub(redeemAmount);
         _redeem(msg.sender,_poolToken,redeemAmount);
         emit Unstake(msg.sender,_poolToken,redeemAmount,amount);

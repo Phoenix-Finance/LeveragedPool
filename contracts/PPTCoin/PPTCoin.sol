@@ -8,14 +8,14 @@ import "../modules/SafeMath.sol";
  */
 
 /**
- * @title FPTCoin is Phoenix collateral Pool token, implement ERC20 interface.
+ * @title PPTCoin is Phoenix collateral Pool token, implement ERC20 interface.
  * @dev ERC20 token. Its inside value is collatral pool net worth.
  *
  */
-contract FPTCoin is SharedCoin {
+contract PPTCoin is SharedCoin {
     using SafeMath for uint256;
     mapping (address => bool) internal timeLimitWhiteList;
-    constructor ()public{
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
     }
     function initialize() public{
         versionUpdater.initialize();
@@ -54,67 +54,67 @@ contract FPTCoin is SharedCoin {
     }
 
     /**
-     * @dev Move user's FPT to locked balance, when user redeem collateral. 
+     * @dev Move user's PPT to locked balance, when user redeem collateral. 
      * @param account user's account.
-     * @param amount amount of locked FPT.
-     * @param lockedWorth net worth of locked FPT.
+     * @param amount amount of locked PPT.
+     * @param lockedWorth net worth of locked PPT.
      */ 
     function addlockBalance(address account, uint256 amount,uint256 lockedWorth)public onlyManager {
         burn(account,amount);
         _addLockBalance(account,amount,lockedWorth);
     }
     /**
-     * @dev Move user's FPT to 'recipient' balance, a interface in ERC20. 
+     * @dev Move user's PPT to 'recipient' balance, a interface in ERC20. 
      * @param recipient recipient's account.
-     * @param amount amount of FPT.
+     * @param amount amount of PPT.
      */ 
     function transfer(address recipient, uint256 amount)public returns (bool){
-        require(address(minePool) != address(0),"FnxMinePool is not set");
-        if(SharedCoin.transfer(recipient,amount)){
-            minePool.transferFPTCoin(msg.sender,recipient);
-            return true;
+        SharedCoin.transfer(recipient,amount);
+        if (address(minePool) != address(0)){
+            minePool.transferPPTCoin(msg.sender,recipient);
         }
-        return false;
+        return true;
     }
         /**
-     * @dev Move sender's FPT to 'recipient' balance, a interface in ERC20. 
+     * @dev Move sender's PPT to 'recipient' balance, a interface in ERC20. 
      * @param sender sender's account.
      * @param recipient recipient's account.
-     * @param amount amount of FPT.
+     * @param amount amount of PPT.
      */ 
     function transferFrom(address sender, address recipient, uint256 amount)public returns (bool){
-        require(address(minePool) != address(0),"FnxMinePool is not set");
-        if(SharedCoin.transferFrom(sender,recipient,amount)){
-            minePool.transferFPTCoin(sender,recipient);
-            return true;            
+        SharedCoin.transferFrom(sender,recipient,amount);
+        if (address(minePool) != address(0)){
+            minePool.transferPPTCoin(sender,recipient);
         }
-        return false;
+        return true;            
     }
     /**
-     * @dev burn user's FPT when user redeem FPTCoin. 
+     * @dev burn user's PPT when user redeem PPTCoin. 
      * @param account user's account.
-     * @param amount amount of FPT.
+     * @param amount amount of PPT.
      */ 
     function burn(address account, uint256 amount) public onlyManager OutLimitation(account) {
-        //require(address(_FnxMinePool) != address(0),"FnxMinePool is not set");
-        //_FnxMinePool.burnMinerCoin(account,amount);
         SharedCoin._burn(account,amount);
-        minePool.changeFPTStake(account);
+        if (address(minePool) != address(0)){
+            minePool.changePPTStake(account);
+        }
     }
     /**
-     * @dev mint user's FPT when user add collateral. 
+     * @dev mint user's PPT when user add collateral. 
      * @param account user's account.
-     * @param amount amount of FPT.
+     * @param amount amount of PPT.
      */ 
     function mint(address account, uint256 amount) public onlyManager {
         SharedCoin._mint(account,amount);
-        minePool.changeFPTStake(account);
+        if (address(minePool) != address(0)){
+            minePool.changePPTStake(account);
+        }
     }
     /**
      * @dev An auxiliary function, add user's locked balance. 
      * @param account user's account.
-     * @param amount amount of FPT.
-     * @param lockedWorth net worth of FPT.
+     * @param amount amount of PPT.
+     * @param lockedWorth net worth of PPT.
      */ 
     function _addLockBalance(address account, uint256 amount,uint256 lockedWorth)internal {
         lockedBalances[account]= lockedBalances[account].add(amount);
@@ -125,8 +125,8 @@ contract FPTCoin is SharedCoin {
     /**
      * @dev An auxiliary function, deduct user's locked balance. 
      * @param account user's account.
-     * @param amount amount of FPT.
-     * @param lockedWorth net worth of FPT.
+     * @param amount amount of PPT.
+     * @param lockedWorth net worth of PPT.
      */ 
     function _subLockBalance(address account,uint256 amount,uint256 lockedWorth)internal {
         lockedBalances[account]= lockedBalances[account].sub(amount);
@@ -135,9 +135,9 @@ contract FPTCoin is SharedCoin {
         emit BurnLocked(account, amount,lockedWorth);
     }
     /**
-     * @dev An interface of redeem locked FPT, when user redeem collateral, only manager contract can invoke. 
+     * @dev An interface of redeem locked PPT, when user redeem collateral, only manager contract can invoke. 
      * @param account user's account.
-     * @param tokenAmount amount of FPT.
+     * @param tokenAmount amount of PPT.
      * @param leftCollateral left available collateral in collateral pool, priced in USD.
      */ 
     function redeemLockedCollateral(address account,uint256 tokenAmount,uint256 leftCollateral)public onlyManager OutLimitation(account) returns (uint256,uint256){

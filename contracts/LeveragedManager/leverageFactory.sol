@@ -11,37 +11,45 @@ import "../leveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
 import "../ERC20/IERC20.sol";
 import "../rebaseToken/IRebaseToken.sol";
-import "../FPTCoin/IFPTCoin.sol";
+import "../acceleratedMinePool/IAcceleratedMinePool.sol";
+import "../PPTCoin/IPPTCoin.sol";
 import "../modules/Address.sol";
 /**
- * @title FNX period mine pool.
- * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
+ * @title leverage contract factory.
+ * @dev A smart-contract which manage leverage smart-contract's and peripheries.
  *
  */
 contract leverageFactory is leverageFactoryData{
     using SafeMath for uint256;
     using Address for address;
-    constructor() public {
+    /**
+     * @dev constructor.
+     */
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
+    }
 
-    } 
     function initialize() public{
         versionUpdater.initialize();
-        FPTTimeLimit = 0;
+        PPTTimeLimit = 0;
         rebaseTimeLimit = 0;
     }
     function update() public versionUpdate {
     }
-    function initFactoryInfo(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _FPTCoinImpl,
-        address _rebaseTokenImpl,address _fnxOracle,address _swapRouter,address _fnxSwapLib,address payable _feeAddress,uint64 _rebalanceInterval,
+    function setImplementAddress(string memory _baseCoinName,address _stakePoolImpl,address _leveragePoolImpl,address _PPTCoinImpl,
+        address _rebaseTokenImpl,address acceleratedMinePool,address PHXAccelerator,address _phxOracle)public originOnce{
+        baseCoinName = _baseCoinName;
+        proxyinfoMap[LeveragePoolID].implementation = _leveragePoolImpl;
+        proxyinfoMap[stakePoolID].implementation = _stakePoolImpl;
+        proxyinfoMap[rebasePoolID].implementation = _rebaseTokenImpl;
+        proxyinfoMap[PPTTokenID].implementation = _PPTCoinImpl;
+        proxyinfoMap[MinePoolID].implementation = acceleratedMinePool;
+        accelerator = PHXAccelerator;  
+        phxOracle = _phxOracle;
+    }
+    function initFactoryInfo(address _swapRouter,address _SwapLib,address payable _feeAddress,uint64 _rebalanceInterval,
              uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public originOnce{
-                baseCoinName = _baseCoinName;
-                proxyinfoMap[LeveragePoolID].implementation = _leveragePoolImpl;
-                proxyinfoMap[stakePoolID].implementation = _stakePoolImpl;
-                proxyinfoMap[rebasePoolID].implementation = _rebaseTokenImpl;
-                proxyinfoMap[FPTTokenID].implementation = _FPTCoinImpl;
-                fnxOracle = _fnxOracle;
                 swapRouter = _swapRouter;
-                fnxSwapLib = _fnxSwapLib;
+                phxSwapLib = _SwapLib;
                 feeAddress = _feeAddress;
                 buyFee = _buyFee;
                 sellFee = _sellFee;
@@ -86,14 +94,14 @@ contract leverageFactory is leverageFactoryData{
             rebaseTokenB = createRebaseToken(_leveragePool,tokenB,hedgeName);
         }
         ILeveragedPool newPool = ILeveragedPool(_leveragePool);
-        newPool.setLeveragePoolInfo(feeAddress,_stakePoolA,_stakePoolB,fnxOracle,swapRouter,fnxSwapLib,rebaseTokenA,rebaseTokenB,
+        newPool.setLeveragePoolInfo(feeAddress,_stakePoolA,_stakePoolB,phxOracle,swapRouter,phxSwapLib,rebaseTokenA,rebaseTokenB,
             uint256(buyFee)+(uint256(sellFee)<<64)+(uint256(rebalanceFee)<<128)+(uint256(leverageRatio)<<192),
             rebaseThreshold +(uint256(liquidateThreshold)<<128),leverageRebaseWorth);
     }
     function createRebaseToken(address leveragePool,address token,string memory name)internal returns(address){
         address payable newToken = createPhxProxy(rebasePoolID);
         IRebaseToken rebaseToken = IRebaseToken(newToken);
-        Operator(newToken).setManager(leveragePool);
+        proxyOperator(newToken).setManager(leveragePool);
         rebaseToken.changeTokenName(name,name,token);
         rebaseToken.setTimeLimitation(rebaseTimeLimit);
         return newToken;
@@ -117,7 +125,7 @@ contract leverageFactory is leverageFactoryData{
     function setRebalanceInterval(uint64 interval) public onlyOrigin{
         rebalanceInterval = interval;
     }
-    function rebalanceAll()external rebalanceEnable onlyOperator(3) {
+    function rebalanceAll()external rebalanceEnable onlyOperator(1) {
         proxyInfo storage leverageInfo = proxyinfoMap[LeveragePoolID];
         uint256 len = leverageInfo.proxyList.length;
         for(uint256 i=0;i<len;i++){
@@ -134,22 +142,30 @@ contract leverageFactory is leverageFactoryData{
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         return keccak256(abi.encodePacked(token0, token1,leverageRatio));
     }
-    function createStatePool(address token,uint64 _interestrate)public onlyOwner returns(address payable){
+    function createStatePool(address token,uint64 _interestrate)public onlyOrigin returns(address payable){
         address payable stakePool = stakePoolMap[token];
         if(stakePool == address(0)){
-            address fptCoin = createFptCoin(token);
+            address pptCoin = createPPTCoin(token);
             stakePool = createPhxProxy(stakePoolID);
-            IStakePool(stakePool).setPoolInfo(fptCoin,token,_interestrate);
-            Operator(fptCoin).setManager(stakePool);
+            IStakePool(stakePool).setPoolInfo(pptCoin,token,_interestrate);
+            proxyOperator(pptCoin).setManager(stakePool);
             stakePoolMap[token] = stakePool;
         }
         return stakePool;
     }
-    function createFptCoin(address token)internal returns(address){
-        address payable newCoin = createPhxProxy(FPTTokenID);
-        string memory tokenName = (token == address(0)) ? string(abi.encodePacked("FPT_", baseCoinName)):
-                 string(abi.encodePacked("FPT_",IERC20(token).symbol()));
-        IFPTCoin(newCoin).changeTokenName(tokenName,tokenName,IERC20(token).decimals());
+    function createPPTCoin(address token)internal returns(address){
+        address payable newCoin = createPhxProxy(PPTTokenID);
+        string memory tokenName = (token == address(0)) ? string(abi.encodePacked("PPT_", baseCoinName)):
+                 string(abi.encodePacked("PPT_",IERC20(token).symbol()));
+        IPPTCoin(newCoin).changeTokenName(tokenName,tokenName,IERC20(token).decimals());
+        IPPTCoin(newCoin).setTimeLimitation(PPTTimeLimit);
+        address minePool = createAcceleratedMinePool();
+        proxyOperator(minePool).setManager(newCoin);
+        return newCoin;
+    }
+    function createAcceleratedMinePool()internal returns(address){
+        address payable newCoin = createPhxProxy(MinePoolID);
+        IAcceleratedMinePool(newCoin).setAccelerator(accelerator);
         return newCoin;
     }
     function createPhxProxy(uint256 index) internal returns (address payable){
@@ -175,12 +191,12 @@ contract leverageFactory is leverageFactoryData{
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setSwapRouterAddress(address)",_swapRouter));
     }
     function setSwapLibAddress(address _swapLib)public onlyOrigin{
-        fnxSwapLib = _swapLib;
+        phxSwapLib = _swapLib;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setSwapLibAddress(address)",_swapLib));
     }
-    function setOracleAddress(address _fnxOracle)public onlyOrigin{
-        fnxOracle = _fnxOracle;
-        setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setOracleAddress(address)",_fnxOracle));
+    function setOracleAddress(address _phxOracle)public onlyOrigin{
+        phxOracle = _phxOracle;
+        setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setOracleAddress(address)",_phxOracle));
     }
     function setFeeAddress(address payable _feeAddress)public onlyOrigin{
         feeAddress = _feeAddress;
@@ -196,9 +212,9 @@ contract leverageFactory is leverageFactoryData{
         rebaseTimeLimit = _rebaseTimeLimit;
         setContractsInfo(rebasePoolID,abi.encodeWithSignature("setTimeLimitation(uint256)",_rebaseTimeLimit));
     }
-    function setFPTTimeLimit(uint32 _FPTTimeLimit) public onlyOrigin{
-        FPTTimeLimit = _FPTTimeLimit;
-        setContractsInfo(FPTTokenID,abi.encodeWithSignature("setTimeLimitation(uint256)",_FPTTimeLimit));
+    function setPPTTimeLimit(uint32 _PPTTimeLimit) public onlyOrigin{
+        PPTTimeLimit = _PPTTimeLimit;
+        setContractsInfo(PPTTokenID,abi.encodeWithSignature("setTimeLimitation(uint256)",_PPTTimeLimit));
     }
     function upgradePhxProxy(uint256 index,address implementation) public onlyOrigin{
         proxyInfo storage curInfo = proxyinfoMap[index];

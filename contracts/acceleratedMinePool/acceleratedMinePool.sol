@@ -9,8 +9,8 @@ import "./acceleratedMinePoolData.sol";
 import "../ERC20/IERC20.sol";
 import "../ERC20/safeErc20.sol";
 /**
- * @title FNX period mine pool.
- * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
+ * @title PPT period mine pool.
+ * @dev A smart-contract which distribute some mine coins when user stake PPT coins.
  *
  */
 contract acceleratedMinePool is acceleratedMinePoolData {
@@ -18,23 +18,27 @@ contract acceleratedMinePool is acceleratedMinePoolData {
     /**
      * @dev constructor.
      */
-    constructor()public{
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
     }
 
-    function update()public onlyOwner{
+    function update() external versionUpdate {
+    }
+    function setAccelerator(address _accelerator) external onlyOwner {
+        accelerator = IAccelerator(_accelerator);
+        (acceleratorStart,acceleratorPeriod) = accelerator.getAcceleratorPeriodInfo();
     }
     /**
-     * @dev getting function. Retrieve FPT-A coin's address
+     * @dev getting function. Retrieve PPT coin's address
      */
-    function getFPTAddress()public view returns (address) {
-        return _FPT;
+    function getPPTAddress()public view returns (address) {
+        return _PPT;
     }
     /**
-     * @dev getting user's staking FPT-A balance.
+     * @dev getting user's staking PPT balance.
      * @param account user's account
      */
-    function getUserFPTBalance(address account)public view returns (uint256) {
-        return userInfoMap[account].fptBalance;
+    function getUserPPTBalance(address account)public view returns (uint256) {
+        return userInfoMap[account].pptBalance;
     }
     /**
      * @dev getting whole pool's mine production weight ratio.
@@ -58,7 +62,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
      * @param mineCoin mineCoin address
      * @param amount redeem amount.
      */
-    function redeemOut(address mineCoin,uint256 amount)public onlyOwner{
+    function redeemOut(address mineCoin,uint256 amount)public onlyOrigin{
         _redeem(msg.sender,mineCoin,amount);
     }
     /**
@@ -90,7 +94,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
      * @param _mineAmount mineCoin distributed amount
      * @param _mineInterval mineCoin distributied time interval
      */
-    function setMineCoinInfo(address mineCoin,uint256 _mineAmount,uint256 _mineInterval)public onlyOwner {
+    function setMineCoinInfo(address mineCoin,uint256 _mineAmount,uint256 _mineInterval)public onlyOrigin {
         require(_mineAmount<1e30,"input mine amount is too large");
         require(_mineInterval>0,"input mine Interval must larger than zero");
         _mineSettlement(mineCoin);
@@ -386,26 +390,26 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         return userInfoMap[account].distribution.mul(tokenNetWorth-origin).mul(getPeriodWeight(periodID,userMaxPeriod))/1000/calDecimals;
     }
         /**
-     * @dev transfer mineCoin to recieptor when account transfer amount FPTCoin to recieptor, only manager contract can modify database.
+     * @dev transfer mineCoin to recieptor when account transfer amount PPTCoin to recieptor, only manager contract can modify database.
      * @param account the account transfer from
      * @param recieptor the account transfer to
      */
-    function transferFPTCoin(address account,address recieptor) public onlyManager {
-        changeFptBalance(account);
-        changeFptBalance(recieptor);
+    function transferPPTCoin(address account,address recieptor) public onlyManager {
+        changePPTBalance(account);
+        changePPTBalance(recieptor);
     }
         /**
      * @dev mint mineCoin to account when account add collateral to collateral pool, only manager contract can modify database.
      * @param account user's account
      */
-    function changeFPTStake(address account) public onlyManager {
-        changeFptBalance(account);
+    function changePPTStake(address account) public onlyManager {
+        changePPTBalance(account);
     }
 
-    function changeFptBalance(address account) internal {
+    function changePPTBalance(address account) internal {
         (uint256 acceleratedStake,uint256 acceleratedPeriod) = accelerator.getAcceleratedBalance(account);
         removeDistribution(account,acceleratedStake,acceleratedPeriod);
-        userInfoMap[account].fptBalance = IERC20(_operators[2]).balanceOf(account);
+        userInfoMap[account].pptBalance = IERC20(_operators[2]).balanceOf(account);
         addDistribution(account,acceleratedStake,acceleratedPeriod);
     }
     function changeAcceleratedInfo(address account,uint256 oldAcceleratedStake,uint64 oldAcceleratedPeriod) public onlyAccelerator{
@@ -452,11 +456,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
      * @param account user's account.
      */
     function calculateDistribution(address account,uint256 acceleratedStake,uint256 acceleratedPeriod) internal view returns (uint256){
-        return userInfoMap[account].fptBalance+acceleratedStake;
-//        uint256 fptAAmount = userInfoMap[account].fptBalance;
-//        uint256 repeat = (fptAAmount>acceleratedStake*10) ? acceleratedStake*10 : fptAAmount;
-//        return _FPTARatio.mul(fptAAmount).add(_FPTBRatio.mul(acceleratedStake)).add(
-//            _RepeatRatio.mul(repeat));
+        return userInfoMap[account].pptBalance+acceleratedStake;
     }
     /**
      * @dev Auxiliary function. get weight distribution in each period.

@@ -16,12 +16,12 @@ contract('leveragedPool', function (accounts){
         eventDecoder.initEventsMap([FPTCoinAbi,leveragedPoolAbi,stakePoolAbi]);
     }); 
     it('leveragedPool normal tests', async function (){
-        await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
-        await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
+        //await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
+        //await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
     });
     it('leveragedPool normal tests 2', async function (){
         await testToken2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
-        await testToken2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
+        //await testToken2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
     });
     async function logInfo(tokenA,tokenB,contracts){
         console.log("===============================================================");
@@ -53,7 +53,7 @@ contract('leveragedPool', function (accounts){
         console.log("===============================================================");
     }
     async function testToken(tokenA,tokenB,beforeInfo,accounts,bFirst){
-        let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0]);
+        let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0],accounts);
         if(bFirst){
             await testInfo.addLiquidity(beforeInfo,factoryInfo,tokenA,tokenB,accounts[0]);
         }
@@ -77,7 +77,7 @@ contract('leveragedPool', function (accounts){
         let prices = [priceA,priceB]
         console.log(priceA.toString(),priceB.toString());
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);
-        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0]);
+        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0],accounts);
         let netWroth = await contracts.leveragePool.getTokenNetworths();
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         receipt = await factoryInfo.factory.rebalanceAll();
@@ -138,7 +138,7 @@ contract('leveragedPool', function (accounts){
         await lToken.sellHedge(fnxBalance,10,leverageCheck.getDeadLine(),"0x");
     }
     async function testToken2(tokenA,tokenB,beforeInfo,accounts,bFirst){
-        let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0]);
+        let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0],accounts);
         if(bFirst){
             await testInfo.addLiquidity(beforeInfo,factoryInfo,tokenA,tokenB,accounts[0]);
         }
@@ -162,7 +162,7 @@ contract('leveragedPool', function (accounts){
         let prices = [priceA,priceB]
         console.log(priceA.toString(),priceB.toString());
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);
-        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0]);
+        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0],accounts);
         let netWroth = await contracts.leveragePool.getTokenNetworths();
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         await factoryInfo.factory.rebalanceAll();

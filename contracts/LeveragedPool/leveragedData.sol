@@ -6,7 +6,7 @@ import "../stakePool/IStakePool.sol";
 import "../modules/ReentrancyGuard.sol";
 import "../proxyModules/proxyOperator.sol";
 contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard{
-    uint256 constant internal currentVersion = 2;
+    uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
@@ -25,7 +25,7 @@ contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGu
     leverageInfo internal leverageCoin;
     leverageInfo internal hedgeCoin;
     address public swapRouter;
-    address public fnxSwapLib;
+    address public phxSwapLib;
     uint256[2] public rebalancePrices;
     uint256[2] internal currentPrice;
     uint256 public buyFee;

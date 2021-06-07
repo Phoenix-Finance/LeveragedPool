@@ -11,28 +11,34 @@ import "../proxyModules/versionUpdater.sol";
 import "../modules/safeTransfer.sol";
 /**
  * @title new Phoenix Options Pool token mine pool.
- * @dev A smart-contract which distribute some mine coins when you stake some FPT-A and FPT-B coins.
- *      Users who both stake some FPT-A and FPT-B coins will get more bonus in mine pool.
- *      Users who Lock FPT-B coins will get several times than normal miners.
+ * @dev A smart-contract which distribute some mine coins when you stake some PHX coins.
+ *      Users who both stake some PHX coins will get more bonus in mine pool.
+ *      Users who Lock PHX coins will get several times than normal miners.
  */
  interface IAccelerator {
     function getAcceleratedBalance(address account)external returns(uint256,uint64); 
+    function getAcceleratorPeriodInfo()external returns (uint256,uint256);
 }
 contract acceleratedMinePoolData is versionUpdater,proxyOperator,Halt,AddressWhiteList,safeTransfer,ReentrancyGuard {
+    uint256 constant internal currentVersion = 1;
+    function implementationVersion() public pure returns (uint256) 
+    {
+        return currentVersion;
+    }
     //Special decimals for calculation
     uint256 constant calDecimals = 1e18;
 
     //The max loop when user does nothing to this pool for long long time .
     uint256 constant internal _maxLoop = 120;
 
-    // FPT-A address
-    address internal _FPT;
-    IAccelerator accelerator;
-    uint256 acceleratorStart;
-    uint256 acceleratorPeriod;
+    // PPT address
+    address internal _PPT;
+    IAccelerator public accelerator;
+    uint256 public acceleratorStart;
+    uint256 public acceleratorPeriod;
     struct userInfo {
-        //user's FPT staked balance
-        uint256 fptBalance;
+        //user's PPT staked balance
+        uint256 pptBalance;
         //User's mine distribution.You can get base mine proportion by your distribution divided by total distribution.
         uint256 distribution;
         uint256 maxPeriodID;
@@ -72,13 +78,13 @@ contract acceleratedMinePoolData is versionUpdater,proxyOperator,Halt,AddressWhi
 
 
     /**
-     * @dev Emitted when `account` stake `amount` FPT-A coin.
+     * @dev Emitted when `account` stake `amount` PPT coin.
      */
-    event StakeFPTA(address indexed account,uint256 amount);
+    event StakePPT(address indexed account,uint256 amount);
     /**
-     * @dev Emitted when `account` unstake `amount` FPT-A coin.
+     * @dev Emitted when `account` unstake `amount` PPT coin.
      */
-    event UnstakeFPTA(address indexed account,uint256 amount);
+    event UnstakePPT(address indexed account,uint256 amount);
 
     /**
      * @dev Emitted when `account` redeem `value` mineCoins.

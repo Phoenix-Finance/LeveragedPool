@@ -1,13 +1,13 @@
 pragma solidity =0.5.16;
 import "../modules/SafeMath.sol";
 
-import "./FPTData.sol";
+import "./PPTData.sol";
 /**
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-contract SharedCoin is FPTData  {
+contract SharedCoin is PPTData  {
     using SafeMath for uint256;
     /**
      * EXTERNAL FUNCTION

@@ -7,8 +7,8 @@ pragma solidity =0.5.16;
 import "../modules/SafeMath.sol";
 import "./leverageRouterData.sol";
 /**
- * @title FNX period mine pool.
- * @dev A smart-contract which distribute some mine coins when user stake FPT-A and FPT-B coins.
+ * @title leverage contract Router.
+ * @dev A smart-contract which manage leverage smart-contract's and peripheries.
  *
  */
 contract leverageRouter is leverageRouterData{

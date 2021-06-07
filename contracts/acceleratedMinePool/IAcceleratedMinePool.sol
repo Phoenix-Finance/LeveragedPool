@@ -5,7 +5,8 @@ pragma solidity =0.5.16;
  * Copyright (C) 2020 Phoenix Options Protocol
  */
 interface IAcceleratedMinePool {
+    function setAccelerator(address _accelerator) external;
     function changeAcceleratedInfo(address account,uint256 oldAcceleratedStake,uint64 oldAcceleratedPeriod) external;
-    function transferFPTCoin(address account,address recieptor) external;
-    function changeFPTStake(address account) external;
+    function transferPPTCoin(address account,address recieptor) external;
+    function changePPTStake(address account) external;
 }

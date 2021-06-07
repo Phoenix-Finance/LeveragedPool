@@ -5,12 +5,12 @@ import "../multiSignature/multiSignatureClient.sol";
  * each operator can be granted exclusive access to specific functions.
  *
  */
-contract Operator is multiSignatureClient {
+contract Operator {
     mapping(uint256=>address) internal _operators;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OriginTransferred(address indexed previousOrigin, address indexed newOrigin);
     event OperatorTransferred(address indexed previousOperator, address indexed newOperator,uint256 indexed index);
-    constructor()public{
+    constructor()  public{
         _operators[0] = msg.sender;
         emit OwnershipTransferred(address(0), msg.sender);
         _operators[1] = tx.origin;
@@ -54,7 +54,7 @@ contract Operator is multiSignatureClient {
      * NOTE: Renouncing ownership will leave the contract without an owner,
      * thereby removing any functionality that is only available to the owner.
      */
-    function renounceOwnership() public onlyOwner validCall {
+    function renounceOwnership() public onlyOwner {
         emit OwnershipTransferred(_operators[0], address(0));
         _operators[0] = address(0);
     }
@@ -103,7 +103,7 @@ contract Operator is multiSignatureClient {
      * @dev modify indexed operator by owner. 
      *
      */
-    function setOperator(uint256 index,address newAddress)public onlyOperator2(0,1){
+    function setOperator(uint256 index,address newAddress)public onlyOperator2(0,1) {
         require(index>2, "Index must greater than 2");
         emit OperatorTransferred(_operators[index], newAddress,index);
         _operators[index] = newAddress;

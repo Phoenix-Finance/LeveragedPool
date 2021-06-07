@@ -10,13 +10,18 @@ import "../proxyModules/Halt.sol";
 import "../modules/safeTransfer.sol";
 import "../modules/ReentrancyGuard.sol";
 contract PHXAcceleratorData is Halt,timeLimitation,ReentrancyGuard,versionUpdater,safeTransfer{
+    uint256 constant internal currentVersion = 1;
+    function implementationVersion() public pure returns (uint256) 
+    {
+        return currentVersion;
+    }
     mapping(address=>uint256) public tokenAcceleratorRate;
     struct userAcceleratorInfo {
         uint256 AcceleratorBalance;
-        //Period ID start at 1. if a PeriodID equals zero, it means your FPT-B is flexible staked.
+        //Period ID start at 1. if a PeriodID equals zero, it means your PHX is flexible staked.
         //User's max locked period id;
         uint64 maxPeriodID;
-        //User's max locked period timestamp. Flexible FPT-B is locked _flexibleExpired seconds;
+        //User's max locked period timestamp. Flexible PHX is locked _flexibleExpired seconds;
         uint128 lockedExpired;
         mapping(address=>uint256) tokenBalance;
         mapping(address=>uint256) acceleratedBalance;

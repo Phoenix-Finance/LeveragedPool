@@ -6,10 +6,12 @@ pragma solidity =0.5.16;
  */
 import "../multiSignature/multiSignatureClient.sol";
 contract proxyOwner is multiSignatureClient{
+    bytes32 private constant ownerExpiredPosition = keccak256("org.Phoenix.ownerExpired.storage");
     bytes32 private constant versionPositon = keccak256("org.Phoenix.version.storage");
     bytes32 private constant proxyOwnerPosition  = keccak256("org.Phoenix.Owner.storage");
     bytes32 private constant proxyOriginPosition  = keccak256("org.Phoenix.Origin.storage");
     uint256 private constant oncePosition  = uint256(keccak256("org.Phoenix.Once.storage"));
+    uint256 private constant ownerExpired =  90 days;
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OriginTransferred(address indexed previousOrigin, address indexed newOrigin);
     constructor(address multiSignature) multiSignatureClient(multiSignature) public{
@@ -32,6 +34,11 @@ contract proxyOwner is multiSignatureClient{
         assembly {
             sstore(position, _newOwner)
         }
+        position = ownerExpiredPosition;
+        uint256 expired = now+ownerExpired;
+        assembly {
+            sstore(position, expired)
+        }
     }
     function owner() public view returns (address _owner) {
         bytes32 position = proxyOwnerPosition;
@@ -43,8 +50,7 @@ contract proxyOwner is multiSignatureClient{
     * @dev Throws if called by any account other than the owner.
     */
     modifier onlyOwner() {
-        require (msg.sender == owner(),"proxyOwner: caller is not the proxy owner");
-        require (isContract(msg.sender),"proxyOwner: caller is not a contract");
+        require (isOwner(),"proxyOwner: caller must be the proxy owner and a contract and not expired");
         _;
     }
     function transferOrigin(address _newOrigin) public onlyOrigin
@@ -65,6 +71,12 @@ contract proxyOwner is multiSignatureClient{
             _origin := sload(position)
         }
     }
+    function ownerExpiredTime() public view returns (uint256 _expired) {
+        bytes32 position = ownerExpiredPosition;
+        assembly {
+            _expired := sload(position)
+        }
+    }
     modifier originOnce() {
         require (msg.sender == txOrigin(),"proxyOwner: caller is not the tx origin!");
         uint256 key = oncePosition+uint32(msg.sig);
@@ -72,6 +84,10 @@ contract proxyOwner is multiSignatureClient{
         saveValue(key,1);
         _;
     }
+    function isOwner() public view returns (bool) {
+        return msg.sender == owner() && isContract(msg.sender) && ownerExpiredTime()>now;
+    }
+
     /**
     * @dev Throws if called by any account other than the owner.
     */
@@ -81,8 +97,7 @@ contract proxyOwner is multiSignatureClient{
         _;
     }
     modifier OwnerOrOrigin(){
-        if (msg.sender == owner()){
-            require (isContract(msg.sender),"proxyOwner: caller is not a contract");
+        if (isOwner()){
         }else if(msg.sender == txOrigin()){
             checkMultiSignature();
         }else{

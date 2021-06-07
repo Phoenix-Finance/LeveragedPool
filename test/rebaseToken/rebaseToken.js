@@ -1,16 +1,21 @@
 const { assert } = require("console");
 
 const rebaseToken = artifacts.require("rebaseToken");
-const fnxProxy = artifacts.require("fnxProxy");
-const IERC20 = artifacts.require("IERC20");
+const phxProxy = artifacts.require("phxProxy");
+const PHXCoin = artifacts.require("PHXCoin");
 let eth = "0x0000000000000000000000000000000000000000";
+const multiSignature = artifacts.require("multiSignature");
+const testLeverageFactory = artifacts.require("testLeverageFactory");
+
 contract('rebaseToken', function (accounts){
     it('rebaseToken normal tests', async function (){
-        let rTokenImply = await rebaseToken.new();
-        let rToken = await fnxProxy.new(rTokenImply.address);
-        rToken = await rebaseToken.at(rToken.address);
-        await rToken.modifyPermission(accounts[0],0xFFFFFFFFFFFF);
-        await rToken.changeTokenName("leverageToken","lToken",eth);
+        let multiSign = await multiSignature.new([accounts[0],accounts[1],accounts[2],accounts[3],accounts[4]],3)
+        let rTokenImply = await rebaseToken.new(multiSign.address);
+        let factory = await testLeverageFactory.new()
+        await factory.createRebaseToken(rTokenImply.address,multiSign.address,"leverageToken","lToken",eth);
+        let newToken = await factory.newContract();
+        rToken = await rebaseToken.at(newToken);
+//        await rToken.changeTokenName("leverageToken","lToken",eth);
         let name = await rToken.name();
         console.log(name);
         let symbol = await rToken.symbol();
@@ -51,11 +56,12 @@ contract('rebaseToken', function (accounts){
         console.log("totalSupply : ",totalSupply.toString());
     })
     it('rebaseToken proxy normal tests', async function (){
-        let rTokenImply = await rebaseToken.new();
-        let rToken = await fnxProxy.new(rTokenImply.address);
-        rToken = await rebaseToken.at(rToken.address);
-        await rToken.modifyPermission(accounts[0],0xFFFFFFFFFFFF);
-        rToken.changeTokenName("rebase Token","RBT",eth);
+        let multiSign = await multiSignature.new([accounts[0],accounts[1],accounts[2],accounts[3],accounts[4]],3)
+        let rTokenImply = await rebaseToken.new(multiSign.address);
+        let factory = await testLeverageFactory.new()
+        await factory.createRebaseToken(rTokenImply.address,multiSign.address,"rebaseToken","rToken",eth);
+        let newToken = await factory.newContract();
+        rToken = await rebaseToken.at(newToken);
         let name = await rToken.name();
         console.log(name);
         let symbol = await rToken.symbol();
@@ -96,12 +102,13 @@ contract('rebaseToken', function (accounts){
         console.log("totalSupply : ",totalSupply.toString());
     })
     it('rebaseToken proxy redeem tests', async function (){
-        let rTokenImply = await rebaseToken.new();
-        let rToken = await fnxProxy.new(rTokenImply.address);
-        rToken = await rebaseToken.at(rToken.address);
-        await rToken.modifyPermission(accounts[0],0xFFFFFFFFFFFF);
-        let fnx = await IERC20.at("0xcfD494f8aF60ca86D0936e99dF3904f590c86A57");
-        rToken.changeTokenName("rebase Token","RBT",fnx.address);
+        let phx = await PHXCoin.new();
+        let multiSign = await multiSignature.new([accounts[0],accounts[1],accounts[2],accounts[3],accounts[4]],3)
+        let rTokenImply = await rebaseToken.new(multiSign.address);
+        let factory = await testLeverageFactory.new()
+        await factory.createRebaseToken(rTokenImply.address,multiSign.address,"rebaseToken","rToken",phx.address);
+        let newToken = await factory.newContract();
+        rToken = await rebaseToken.at(newToken);
         let totalSupply = await rToken.totalSupply();
         console.log("totalSupply : ",totalSupply.toString());
         await rToken.mint(accounts[1],10000000000);
@@ -118,20 +125,20 @@ contract('rebaseToken', function (accounts){
         await rToken.transfer(accounts[3],5000000000);
         totalSupply = await rToken.totalSupply();
         console.log("totalSupply : ",totalSupply.toString());
-        await fnx.transfer(rToken.address,"100000000000000000000");
+        await phx.transfer(rToken.address,"100000000000000000000");
         await rToken.newErc20("100000000000000000000");
-        await redeem(rToken,fnx,accounts[0])
-        await redeem(rToken,fnx,accounts[1])
-        await redeem(rToken,fnx,accounts[2])
-        await redeem(rToken,fnx,accounts[3])
-        await redeem(rToken,fnx,accounts[4])
+        await redeem(rToken,phx,accounts[0])
+        await redeem(rToken,phx,accounts[1])
+        await redeem(rToken,phx,accounts[2])
+        await redeem(rToken,phx,accounts[3])
+        await redeem(rToken,phx,accounts[4])
     })
-    async function redeem(rToken,fnx,account){
+    async function redeem(rToken,phx,account){
         let balance = await rToken.getRedeemAmount(account)
         console.log("balance : ",balance.toString());
-        let preBalance = await fnx.balanceOf(account)
+        let preBalance = await phx.balanceOf(account)
         await rToken.redeemToken({from:account});
-        let endBalance = await fnx.balanceOf(account)
+        let endBalance = await phx.balanceOf(account)
         assert(balance.toString() == endBalance.sub(preBalance).toString(),"redeemToken error")
     }
 })

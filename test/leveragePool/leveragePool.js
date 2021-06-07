@@ -17,7 +17,7 @@ contract('leveragedPool', function (accounts){
     }); 
     it('leveragedPool normal tests', async function (){
 
-        let factoryInfo = await testInfo.createFactory(beforeInfo,accounts[0]);
+        let factoryInfo = await testInfo.createFactory(beforeInfo,true,accounts[0],accounts);
         let ethBalance = await beforeInfo.weth.balanceOf(beforeInfo.pair);
         console.log("WETH Balance : ",ethBalance.toString());
         let fnxBalance = await beforeInfo.fnx.balanceOf(beforeInfo.pair);

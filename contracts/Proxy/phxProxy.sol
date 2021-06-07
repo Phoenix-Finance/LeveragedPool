@@ -41,7 +41,7 @@ contract phxProxy is proxyOwner {
             }
         }
         uint256 version_ = abi.decode(returnData, (uint256));
-        require (version_>version(),"upgrade version number must greater than current version");
+        require (version_>version(),"upgrade version number must be greater than current version");
         bytes32 position = implementPositon;
         assembly {
             sstore(position, _newImplementation)

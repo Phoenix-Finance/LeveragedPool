@@ -6,6 +6,8 @@ import "./leveragedData.sol";
 contract leveragedPool is leveragedData{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
+    }
     function() external payable {
     }
     function initialize() public{
@@ -27,7 +29,7 @@ contract leveragedPool is leveragedData{
         }
     }
     function setSwapLibAddress(address _swapLib)public onlyOwner{
-        fnxSwapLib = _swapLib;
+        phxSwapLib = _swapLib;
     }
     function setFeeAddress(address payable addrFee) onlyOwner external {
         feeAddress = addrFee;
@@ -64,9 +66,9 @@ contract leveragedPool is leveragedData{
     function setLeveragePoolAddress(address payable _feeAddress,address leveragePool,address hedgePool,
         address oracle,address _swapRouter,address swaplib)internal{
         feeAddress = _feeAddress;
-        _oracle = IFNXOracle(oracle);
+        _oracle = IPHXOracle(oracle);
         swapRouter = _swapRouter;
-        fnxSwapLib = swaplib;
+        phxSwapLib = swaplib;
         setStakePool(leverageCoin,0,leveragePool);
         setStakePool(hedgeCoin,1,hedgePool);
     }
@@ -161,7 +163,7 @@ contract leveragedPool is leveragedData{
         _sell(hedgeCoin, amount,minAmount,deadLine,false);
     }
     function delegateCallSwap(bytes memory data) public returns (bytes memory) {
-        (bool success, bytes memory returnData) = fnxSwapLib.delegatecall(data);
+        (bool success, bytes memory returnData) = phxSwapLib.delegatecall(data);
         assembly {
             if eq(success, 0) {
                 revert(add(returnData, 0x20), returndatasize)

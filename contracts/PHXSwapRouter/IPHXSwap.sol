@@ -4,7 +4,7 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-interface IFNXSwap {
+interface IPHXSwap {
     function swapBuyAndBuy(address token0,address token1,uint256 buyLev,uint256 buyHe,uint256[2] calldata prices) external returns (uint256);
     function swapSellAndSell(address token0,address token1,uint256 sellLev,uint256 sellHe,uint256[2] calldata prices)external returns (uint256,uint256);
     function swapBuyAndSell(address token0,address token1,uint256 buyAmount,uint256 sellAmount,uint256[2] calldata prices,uint8 id)external returns (uint256);

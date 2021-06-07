@@ -9,6 +9,17 @@ import "../modules/SafeMath.sol";
 import "../acceleratedMinePool/IAcceleratedMinePool.sol";
 contract PHXAccelerator is PHXAcceleratorData{
     using SafeMath for uint256;
+        /**
+     * @dev constructor.
+     */
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
+    }
+
+    function update() external versionUpdate {
+    }
+    function getAcceleratorPeriodInfo()external returns (uint256,uint256){
+        return (startTime,period);
+    }
     function stake(address token,uint256 amount,uint128 maxLockedPeriod,address toMinePool) nonReentrant notHalted public {
         amount = getPayableAmount(token,amount);
         require(amount>0, "Stake amount is zero!");
@@ -21,7 +32,7 @@ contract PHXAccelerator is PHXAcceleratorData{
         emit Stake(msg.sender,token,amount,maxLockedPeriod);
     }
     /**
-     * @dev Add FPT-B locked period.
+     * @dev Add PHX locked period.
      * @param maxLockedPeriod accelerated locked preiod number.
      */
     function changeStakePeriod(uint64 maxLockedPeriod)public validPeriod(maxLockedPeriod) notHalted{
@@ -35,8 +46,8 @@ contract PHXAccelerator is PHXAcceleratorData{
         emit ChangePeriod(msg.sender,maxLockedPeriod);
     }
     /**
-     * @dev withdraw FPT-B coin.
-     * @param amount FPT-B amount that withdraw from mine pool.
+     * @dev withdraw PHX coin.
+     * @param amount PHX amount that withdraw from mine pool.
      */
     function unstake(address token,uint256 amount)public nonReentrant notHalted periodExpired(msg.sender){
         require(amount > 0, 'unstake amount is zero');
@@ -81,7 +92,7 @@ contract PHXAccelerator is PHXAcceleratorData{
         return userInfoMap[account].maxPeriodID;
     }
     /**
-     * @dev getting user's locked expired time. After this time user can unstake FPTB coins.
+     * @dev getting user's locked expired time. After this time user can unstake PHX coins.
      * @param account user's account
      */
     function getUserExpired(address account)public view returns (uint256) {

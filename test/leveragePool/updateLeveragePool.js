@@ -53,7 +53,7 @@ contract('leveragedPool', function (accounts){
         let assets = [tokenA.address,tokenB.address]
         let prices = [priceA,priceB]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);
-        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0]);
+        let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0],accounts);
         console.log("factory",factoryInfo.factory.address);
         console.log("leveragePool",contracts.leveragePool.address);
     }

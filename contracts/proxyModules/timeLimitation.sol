@@ -1,10 +1,10 @@
 pragma solidity =0.5.16;
-import './proxyOperator.sol';
+import './proxyOwner.sol';
 
-contract timeLimitation is proxyOperator {
+contract timeLimitation is proxyOwner {
     
     /**
-     * @dev FPT has burn time limit. When user's balance is moved in som coins, he will wait `timeLimited` to burn FPT. 
+     * @dev PPT has burn time limit. When user's balance is moved in som coins, he will wait `timeLimited` to burn PPT. 
      * latestTransferIn is user's latest time when his balance is moved in.
      */
     struct addressInfo {
