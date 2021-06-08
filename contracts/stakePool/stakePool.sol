@@ -7,7 +7,8 @@ pragma solidity =0.5.16;
 import "../ERC20/safeErc20.sol";
 import "../modules/SafeMath.sol";
 import "./stakePoolData.sol";
-contract stakePool is stakePoolData{
+import "../modules/safeTransfer.sol";
+contract stakePool is stakePoolData,safeTransfer{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     constructor (address multiSignature) proxyOwner(multiSignature) public{
@@ -122,36 +123,5 @@ contract stakePool is stakePoolData{
         _totalSupply = _totalSupply.sub(redeemAmount);
         _redeem(msg.sender,_poolToken,redeemAmount);
         emit Unstake(msg.sender,_poolToken,redeemAmount,amount);
-    }
-    function getPayableAmount(address stakeCoin,uint256 amount) internal returns (uint256) {
-        if (stakeCoin == address(0)){
-            amount = msg.value;
-        }else if (amount > 0){
-            IERC20 oToken = IERC20(stakeCoin);
-            uint256 preBalance = oToken.balanceOf(address(this));
-            oToken.safeTransferFrom(msg.sender, address(this), amount);
-            uint256 afterBalance = oToken.balanceOf(address(this));
-            require(afterBalance-preBalance==amount,"input token transfer error!");
-        }
-        return amount;
-    }
-        /**
-     * @dev An auxiliary foundation which transter amount stake coins to recieptor.
-     * @param recieptor recieptor recieptor's account.
-     * @param stakeCoin stake address
-     * @param amount redeem amount.
-     */
-    function _redeem(address payable recieptor,address stakeCoin,uint256 amount) internal{
-        if (stakeCoin == address(0)){
-            recieptor.transfer(amount);
-        }else{
-            IERC20 token = IERC20(stakeCoin);
-            uint256 preBalance = token.balanceOf(address(this));
-            token.safeTransfer(recieptor,amount);
-//            token.transfer(recieptor,amount);
-            uint256 afterBalance = token.balanceOf(address(this));
-            require(preBalance - afterBalance == amount,"settlement token transfer error!");
-        }
-        emit Redeem(recieptor,stakeCoin,amount);
     }
 }

@@ -17,10 +17,8 @@ contract('leveragedPool', function (accounts){
     }); 
     it('leveragedPool normal tests', async function (){
         await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
-        return;
         await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
     });
-    return;
     it('leveragedPool normal tests 2', async function (){
         await testToken2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
         await testToken2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);

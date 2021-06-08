@@ -2,8 +2,9 @@ pragma solidity =0.5.16;
 import "../ERC20/safeErc20.sol";
 import "../modules/SafeMath.sol";
 import "./leveragedData.sol";
+import "../modules/safeTransfer.sol";
 
-contract leveragedPool is leveragedData{
+contract leveragedPool is leveragedData,safeTransfer{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     constructor (address multiSignature) proxyOwner(multiSignature) public{
@@ -313,7 +314,7 @@ contract leveragedPool is leveragedData{
             delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
                 swapRouter,hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,1));
         }else{
-            if(sellLev>0 && sellHe> 0){
+            if(sellLev>0 || sellHe> 0){
                 (sellLev,sellHe)= abi.decode(delegateCallSwap(abi.encodeWithSignature("swapSellAndSell(address,address,address,uint256,uint256,uint256[2])",
                     swapRouter,leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice)), (uint256,uint256));
             }
@@ -410,31 +411,6 @@ contract leveragedPool is leveragedData{
             _redeem(feeAddress,token, fee);
         }
         return amount.sub(fee);
-    }
-
-    function getPayableAmount(address stakeCoin,uint256 amount) internal returns (uint256) {
-        if (stakeCoin == address(0)){
-            amount = msg.value;
-        }else if (amount > 0){
-            IERC20 oToken = IERC20(stakeCoin);
-            oToken.safeTransferFrom(msg.sender, address(this), amount);
-        }
-        return amount;
-    }
-        /**
-     * @dev An auxiliary foundation which transter amount stake coins to recieptor.
-     * @param recieptor recieptor recieptor's account.
-     * @param stakeCoin stake address
-     * @param amount redeem amount.
-     */
-    function _redeem(address payable recieptor,address stakeCoin,uint256 amount) internal{
-        if (stakeCoin == address(0)){
-            recieptor.transfer(amount);
-        }else{
-            IERC20 token = IERC20(stakeCoin);
-            token.safeTransfer(recieptor,amount);
-        }
-        emit Redeem(recieptor,stakeCoin,amount);
     }
     function _getUnderlyingPriceView() internal view returns(uint256[2]memory){
         uint256[] memory assets = new uint256[](2);
