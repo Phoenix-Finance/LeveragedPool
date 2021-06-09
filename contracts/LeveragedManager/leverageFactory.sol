@@ -158,7 +158,8 @@ contract leverageFactory is leverageFactoryData{
         address payable newCoin = createPhxProxy(PPTTokenID);
         string memory tokenName = (token == address(0)) ? string(abi.encodePacked("PPT_", baseCoinName)):
                  string(abi.encodePacked("PPT_",IERC20(token).symbol()));
-        IPPTCoin(newCoin).changeTokenName(tokenName,tokenName,IERC20(token).decimals());
+        uint8 decimals = (token == address(0)) ? 18 : IERC20(token).decimals();
+        IPPTCoin(newCoin).changeTokenName(tokenName,tokenName,decimals);
         IPPTCoin(newCoin).setTimeLimitation(PPTTimeLimit);
         address minePool = createAcceleratedMinePool();
         proxyOperator(minePool).setManager(newCoin);

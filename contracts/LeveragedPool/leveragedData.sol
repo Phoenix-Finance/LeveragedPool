@@ -5,9 +5,8 @@ import "../rebaseToken/IRebaseToken.sol";
 import "../stakePool/IStakePool.sol";
 import "../modules/ReentrancyGuard.sol";
 import "../proxyModules/proxyOperator.sol";
-import "../proxyModules/halt.sol";
-contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard,Halt{
-    uint256 constant internal currentVersion = 2;
+contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard{
+    uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
@@ -45,6 +44,6 @@ contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGu
     event BuyHedge(address indexed from,address indexed Coin,uint256 amount,uint256 hedgeAmount);
     event SellLeverage(address indexed from,address indexed Coin,uint256 leverageAmount,uint256 amount);
     event SellHedge(address indexed from,address indexed Coin,uint256 hedgeAmount,uint256 amount);
-    event Rebalance(address indexed from,address indexed token,uint256 buyAount,uint256 sellAmount,bool bRebase);
+    event Rebalance(address indexed from,address indexed token,uint256 buyAount,uint256 sellAmount);
     event Liquidate(address indexed from,address indexed token,uint256 loan,uint256 fee,uint256 leftAmount);
 }

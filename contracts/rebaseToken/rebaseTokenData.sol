@@ -9,7 +9,7 @@ import "../proxyModules/versionUpdater.sol";
 import "../proxyModules/timeLimitation.sol";
 import "../proxyModules/proxyOperator.sol";
 contract rebaseTokenData is versionUpdater,proxyOperator,timeLimitation{
-    uint256 constant internal currentVersion = 1;
+    uint256 constant internal currentVersion = 3;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
