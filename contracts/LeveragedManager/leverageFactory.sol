@@ -30,8 +30,8 @@ contract leverageFactory is leverageFactoryData{
 
     function initialize() public{
         versionUpdater.initialize();
-        PPTTimeLimit = 0;
-        rebaseTimeLimit = 0;
+        PPTTimeLimit = 60;
+        rebaseTimeLimit = 60;
     }
     function update() public versionUpdate {
     }
@@ -50,16 +50,16 @@ contract leverageFactory is leverageFactoryData{
     }
     function initFactoryInfo(address _swapRouter,address _SwapLib,uint64 _rebalanceInterval,
              uint64 _buyFee, uint64 _sellFee, uint64 _rebalanceFee,uint64 _rebaseThreshold,uint64 _liquidateThreshold,uint64 _interestInflation) public originOnce{
-                swapRouter = _swapRouter;
-                phxSwapLib = _SwapLib;
-                buyFee = _buyFee;
-                sellFee = _sellFee;
-                rebalanceFee = _rebalanceFee;
-                rebaseThreshold = _rebaseThreshold;
-                liquidateThreshold = _liquidateThreshold;
-                interestInflation = _interestInflation;
-                rebalanceInterval = _rebalanceInterval;
-             }
+        swapRouter = _swapRouter;
+        phxSwapLib = _SwapLib;
+        buyFee = _buyFee;
+        sellFee = _sellFee;
+        rebalanceFee = _rebalanceFee;
+        rebaseThreshold = _rebaseThreshold;
+        liquidateThreshold = _liquidateThreshold;
+        interestInflation = _interestInflation;
+        rebalanceInterval = _rebalanceInterval;
+    }
     function createLeveragePool(address tokenA,address tokenB,uint64 leverageRatio,
         uint256 leverageRebaseWorth)external 
         onlyOrigin returns (address payable _leveragePool){

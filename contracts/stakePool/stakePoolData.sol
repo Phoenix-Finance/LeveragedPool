@@ -8,7 +8,8 @@ import "../PPTCoin/IPPTCoin.sol";
 import "../proxyModules/versionUpdater.sol";
 import "../modules/ReentrancyGuard.sol";
 import "../proxyModules/AddressPermission.sol";
-contract stakePoolData is ImportIPPTCoin,versionUpdater,ReentrancyGuard,AddressPermission{
+import "../proxyModules/halt.sol";
+contract stakePoolData is ImportIPPTCoin,versionUpdater,ReentrancyGuard,AddressPermission,Halt{
     uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {

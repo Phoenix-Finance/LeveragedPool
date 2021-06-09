@@ -175,7 +175,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     function _swap(address token0,address token1,uint256 amountSell) internal returns (uint256){
         return abi.decode(delegateCallSwap(abi.encodeWithSignature("swap(address,address,address,uint256)",swapRouter,token0,token1,amountSell)), (uint256));
     }
-    function _buy(leverageInfo memory coinInfo,uint256 amount,uint256 minAmount,uint256 deadLine,bool bFirstToken) ensure(deadLine) nonReentrant getUnderlyingPrice internal{
+    function _buy(leverageInfo memory coinInfo,uint256 amount,uint256 minAmount,uint256 deadLine,bool bFirstToken) ensure(deadLine) notHalted nonReentrant getUnderlyingPrice internal{
         address inputToken;
         if(bFirstToken){
             inputToken = coinInfo.token;
@@ -216,7 +216,7 @@ contract leveragedPool is leveragedData,safeTransfer{
             delegateCallSwap(abi.encodeWithSignature("sellExactAmount(address,address,address,uint256)",swapRouter,token0,token1,userLoan)), (uint256,uint256));
         return sellAmount.sub(amountIn);
     }
-    function _sell(leverageInfo memory coinInfo,uint256 amount,uint256 minAmount,uint256 deadLine,bool bFirstToken) ensure(deadLine) nonReentrant getUnderlyingPrice internal{
+    function _sell(leverageInfo memory coinInfo,uint256 amount,uint256 minAmount,uint256 deadLine,bool bFirstToken) ensure(deadLine) notHalted nonReentrant getUnderlyingPrice internal{
         require(amount > 0, 'sell amount is zero');
         uint256 total = coinInfo.leverageToken.totalSupply();
         uint256 getLoan = coinInfo.stakePool.loan(address(this)).mul(calDecimal);
@@ -294,9 +294,9 @@ contract leveragedPool is leveragedData,safeTransfer{
         uint256 levSlip = calAverageSlip(leverageCoin);
         uint256 heSlip = calAverageSlip(hedgeCoin);
         (uint256 buyLev,uint256 sellLev) = _settle(leverageCoin);
-        emit Rebalance(msg.sender,leverageCoin.token,buyLev,sellLev);
+        emit Rebalance(msg.sender,leverageCoin.token,buyLev,sellLev,leverageCoin.bRebase);
         (uint256 buyHe,uint256 sellHe) = _settle(hedgeCoin);
-        emit Rebalance(msg.sender,hedgeCoin.token,buyHe,sellHe);
+        emit Rebalance(msg.sender,hedgeCoin.token,buyHe,sellHe,hedgeCoin.bRebase);
         rebalancePrices = currentPrice;
         if (buyLev>0){
             leverageCoin.stakePool.borrowAndInterest(buyLev);
@@ -353,7 +353,7 @@ contract leveragedPool is leveragedData,safeTransfer{
             }
         }
     }
-    function rebalanceAndLiquidate() external getUnderlyingPrice {
+    function rebalanceAndLiquidate() external notHalted getUnderlyingPrice {
         if(checkLiquidate(leverageCoin,currentPrice,liquidateThreshold)){
             _liquidate(leverageCoin);
         }else if(checkLiquidate(hedgeCoin,currentPrice,liquidateThreshold)){

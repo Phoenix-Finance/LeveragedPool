@@ -105,7 +105,7 @@ contract stakePool is stakePoolData,safeTransfer{
         uint256 tokenNum = PPTTotalSuply();
         return (tokenNum > 0 ) ? _totalSupply.mul(calDecimal)/tokenNum : calDecimal;
     }
-    function stake(uint256 amount) public payable nonReentrant {
+    function stake(uint256 amount) external payable nonReentrant notHalted {
         amount = getPayableAmount(_poolToken,amount);
         require(amount > 0, 'stake amount is zero');
         uint256 netWorth = tokenNetworth();
@@ -114,7 +114,7 @@ contract stakePool is stakePoolData,safeTransfer{
         _PPTCoin.mint(msg.sender,mintAmount);
         emit Stake(msg.sender,_poolToken,amount,mintAmount);
     }
-    function unstake(uint256 amount) public nonReentrant {
+    function unstake(uint256 amount) external nonReentrant notHalted {
         require(amount > 0, 'unstake amount is zero');
         uint256 netWorth = tokenNetworth();
         uint256 redeemAmount = netWorth.mul(amount)/calDecimal;

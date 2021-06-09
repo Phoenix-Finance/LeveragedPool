@@ -48,5 +48,4 @@ contract leverageFactoryData is versionUpdater,proxyOperator{
     uint64 public rebalanceInterval;
     address public phxSwapLib;
     uint64 public lastRebalance;
-
 }

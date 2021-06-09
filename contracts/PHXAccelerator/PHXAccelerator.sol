@@ -23,10 +23,10 @@ contract PHXAccelerator is PHXAcceleratorData{
     }
     function update() external versionUpdate {
     }
-    function getAcceleratedBalance(address account,address minePool)external returns(uint256,uint64){
+    function getAcceleratedBalance(address account,address minePool)external view returns(uint256,uint64){
         return (userInfoMap[account].acceleratedBalance[minePool],userInfoMap[account].maxPeriodID);
     }
-    function getAcceleratorPeriodInfo()external returns (uint256,uint256){
+    function getAcceleratorPeriodInfo()external view returns (uint256,uint256){
         return (startTime,period);
     }
     function stake(address token,uint256 amount,uint128 maxLockedPeriod,address toMinePool) nonReentrant notHalted public {

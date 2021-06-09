@@ -16,10 +16,10 @@ import "../modules/safeTransfer.sol";
  *      Users who Lock PHX coins will get several times than normal miners.
  */
  interface IAccelerator {
-    function getAcceleratedBalance(address account,address minePool)external returns(uint256,uint64); 
-    function getAcceleratorPeriodInfo()external returns (uint256,uint256);
+    function getAcceleratedBalance(address account,address minePool)external view returns(uint256,uint64); 
+    function getAcceleratorPeriodInfo()external view returns (uint256,uint256);
 }
-contract acceleratedMinePoolData is versionUpdater,proxyOperator,Halt,AddressWhiteList,safeTransfer,ReentrancyGuard {
+contract acceleratedMinePoolData is versionUpdater,proxyOperator,AddressWhiteList,safeTransfer,ReentrancyGuard {
     uint256 constant internal currentVersion = 1;
     function implementationVersion() public pure returns (uint256) 
     {
