@@ -130,30 +130,40 @@ module.exports = {
         }
         return contracts;
     },
-    createLeveragePool : async function(factoryInfo,beforeInfo,account) {
-        await factoryInfo.factory.createStatePool(beforeInfo.fnx.address,1e5,{from:account});
-        await factoryInfo.factory.createStatePool(eth,1e5,{from:account});
-        let spoolAddress = await factoryInfo.factory.getStakePool(beforeInfo.fnx.address);
+    createLeveragePool : async function(tokenA,factoryInfo,beforeInfo,account,accounts) {
+        await this.multiSignatureAndSend(factoryInfo.multiSignature,factoryInfo.factory,"createStatePool",account,accounts,tokenA.address,1e5)
+        await this.multiSignatureAndSend(factoryInfo.multiSignature,factoryInfo.factory,"createStatePool",account,accounts,eth,1e5)
+        let spoolAddress = await factoryInfo.factory.getStakePool(tokenA.address);
         let stakepoolA = await stakePool.at(spoolAddress);
         spoolAddress = await factoryInfo.factory.getStakePool(eth);
         let stakepoolB = await stakePool.at(spoolAddress);
-
-        console.log("rebase worth :",tokenRebase0.toString(),tokenRebase1.toString())
-        await factoryInfo.factory.createLeveragePool(beforeInfo.fnx.address,eth,3e8,1e11,{from:account});  
-        spoolAddress = await factoryInfo.factory.getLeveragePool(beforeInfo.fnx.address,eth,3e8);
+        await this.multiSignatureAndSend(factoryInfo.multiSignature,factoryInfo.factory,"createLeveragePool",account,accounts,tokenA.address,eth,3e8,1e10)
+        spoolAddress = await factoryInfo.factory.getLeveragePool(tokenA.address,eth,3e8);
         lToken = await leveragedPool.at(spoolAddress[2]);
         let leverageInfo = await lToken.getLeverageInfo();
         let hedgeInfo = await lToken.getHedgeInfo();
         let contracts = {
             oracle : factoryInfo.oracle,
-            tokenAddr : [beforeInfo.fnx.address,eth],
-            token : [beforeInfo.fnx,eth],
+            tokenAddr : [tokenA.address,eth],
+            token : [tokenA,eth],
             stakepool : [stakepoolA,stakepoolB],
             leveragePool : lToken,
             info : [leverageInfo,hedgeInfo],
             rebaseToken : [await IERC20.at(leverageInfo[2]),await IERC20.at(hedgeInfo[2])]
         }
         return contracts;
+    },
+    addLiquidityETH : async function(beforeInfo,factoryInfo,tokenA,account) {
+        let amount = "1000000000000000000";
+        await tokenA.approve(beforeInfo.univ2,amount,{from:account});
+        let weth = await beforeInfo.routerV2.WETH();
+        await beforeInfo.routerV2.addLiquidityETH(tokenA.address,amount,amount,amount,account,3625460000,{from:account,value:amount})
+        let pair = await beforeInfo.uniFactory.getPair(tokenA.address,weth);
+        beforeInfo.pair = pair;
+        amount = "10000000000000000000000000000000000000";
+        await tokenA.transfer(factoryInfo.uniSync.address,amount,{from:account});
+        await beforeInfo.weth.deposit({value:"100000000000000000000000"})
+        await beforeInfo.weth.transfer(factoryInfo.uniSync.address,amount,{from:account});
     },
     addLiquidity : async function(beforeInfo,factoryInfo,tokenA,tokenB,account) {
         let amount = "10000000000000000000000";
