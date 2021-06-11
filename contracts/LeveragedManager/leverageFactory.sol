@@ -189,6 +189,10 @@ contract leverageFactory is leverageFactoryData{
             Address.functionCall(curInfo.proxyList[i],data,"setContractsInfo error");
         }
     }
+    function setAccelerator(address _accelerator) public onlyOrigin{
+        accelerator = _accelerator;
+        setContractsInfo(MinePoolID,abi.encodeWithSignature("setAccelerator(address)",_accelerator));
+    }
     function setSwapRouterAddress(address _swapRouter)public onlyOrigin{
         swapRouter = _swapRouter;
         setContractsInfo(LeveragePoolID,abi.encodeWithSignature("setSwapRouterAddress(address)",_swapRouter));

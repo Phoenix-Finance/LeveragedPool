@@ -12,7 +12,7 @@ import "../proxyModules/proxyOperator.sol";
  *
  */
 contract leverageFactoryData is versionUpdater,proxyOperator{
-    uint256 constant internal currentVersion = 1;
+    uint256 constant internal currentVersion = 3;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
