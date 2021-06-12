@@ -33,7 +33,7 @@ contract PHXSwapRouter{
             return 0;
         }
     }
-    function swapBuyAndBuy(address swapRouter,address token0,address token1,uint256 buyLev,uint256 buyHe,uint256[2] calldata prices) external returns (uint256){
+    function swapBuyAndBuy(address swapRouter,address token0,address token1,uint256 buyLev,uint256 buyHe,uint256[2] calldata prices) payable external returns (uint256){
         uint256 buyLev1 = buyLev.mul(calDecimal);
         uint256 buyHe1 = buyHe.mulPrice(prices, 0);
         if(buyLev1 >= buyHe1){
@@ -54,7 +54,7 @@ contract PHXSwapRouter{
             return (sellHe.mul(calDecimal*calDecimal).divPrice(prices,id)/rate,sellHe);
         }
     }
-    function swapSellAndSell(address swapRouter,address token0,address token1,uint256 sellLev,uint256 sellHe,uint256[2] calldata prices)external returns (uint256,uint256){
+    function swapSellAndSell(address swapRouter,address token0,address token1,uint256 sellLev,uint256 sellHe,uint256[2] calldata prices) payable external returns (uint256,uint256){
         uint256 sellLev1 = sellLev.mul(calDecimal);
         uint256 sellHe1 = sellHe.mulPrice(prices, 0);
         if(sellLev1 >= sellHe1){
@@ -64,17 +64,17 @@ contract PHXSwapRouter{
         }
         return (sellLev,sellHe);
     }
-    function swapBuyAndSell(address swapRouter,address token0,address token1,uint256 buyAmount,uint256 sellAmount,uint256[2] calldata prices,uint8 id)external returns (uint256){
+    function swapBuyAndSell(address swapRouter,address token0,address token1,uint256 buyAmount,uint256 sellAmount,uint256[2] calldata prices,uint8 id)payable external returns (uint256){
         uint256 amountSell = buyAmount.add(sellAmount).add(sellAmount/10);
         uint256 rate = calSlit(swapRouter,token0,token1,amountSell,prices,id);
         sellAmount = sellAmount.mul(calDecimal)/rate;
         return _swap(swapRouter,token0,token1,buyAmount.add(sellAmount));
     }
-    function sellExactAmount(address swapRouter,address token0,address token1,uint256 amountout)external returns (uint256,uint256){
+    function sellExactAmount(address swapRouter,address token0,address token1,uint256 amountout) payable external returns (uint256,uint256){
         uint256 amountSell = getAmountIn(swapRouter,token0,token1,amountout);
         return (amountSell,_swap(swapRouter,token0,token1,amountSell));
     }
-    function swap(address swapRouter,address token0,address token1,uint256 amountSell)external returns (uint256){
+    function swap(address swapRouter,address token0,address token1,uint256 amountSell) payable external returns (uint256){
         return _swap(swapRouter,token0,token1,amountSell);
     }
 }
