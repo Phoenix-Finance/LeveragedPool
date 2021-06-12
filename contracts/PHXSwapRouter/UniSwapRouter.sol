@@ -1,7 +1,6 @@
 pragma solidity =0.5.16;
 import "./PHXSwapRouter.sol";
 import "../uniswap/IUniswapV2Router02.sol";
-import "../interface/IWETH.sol";
 /**
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Phoenix
@@ -37,14 +36,20 @@ contract UniSwapRouter is PHXSwapRouter{
     }
     function _swap(address swapRouter,address token0,address token1,uint256 amount0) internal returns (uint256) {
         IUniswapV2Router02 IUniswap = IUniswapV2Router02(swapRouter);
-        address[] memory path = getSwapPath(swapRouter,token0,token1);
+        address[] memory path = new address[](2);
         uint256[] memory amounts;
         if(token0 == address(0)){
-            IWETH(path[0]).deposit.value(amount0)();
-        }
-        amounts = IUniswap.swapExactTokensForTokens(amount0,0, path, address(this), now+30);
-        if(token1 == address(0)){
-            IWETH(path[1]).withdraw(amounts[amounts.length-1]);
+            path[0] = IUniswap.WETH();
+            path[1] = token1;
+            amounts = IUniswap.swapExactETHForTokens.value(amount0)(0, path,address(this), now+30);
+        }else if(token1 == address(0)){
+            path[0] = token0;
+            path[1] = IUniswap.WETH();
+            amounts = IUniswap.swapExactTokensForETH(amount0,0, path, address(this), now+30);
+        }else{
+            path[0] = token0;
+            path[1] = token1;
+            amounts = IUniswap.swapExactTokensForTokens(amount0,0, path, address(this), now+30);
         }
         emit Swap(token0,token1,amounts[0],amounts[amounts.length-1]);
         return amounts[amounts.length-1];
