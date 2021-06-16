@@ -28,12 +28,6 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         (acceleratorStart,acceleratorPeriod) = accelerator.getAcceleratorPeriodInfo();
     }
     /**
-     * @dev getting function. Retrieve PPT coin's address
-     */
-    function getPPTAddress()public view returns (address) {
-        return _PPT;
-    }
-    /**
      * @dev getting user's staking PPT balance.
      * @param account user's account
      */

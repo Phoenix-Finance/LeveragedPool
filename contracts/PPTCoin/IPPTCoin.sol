@@ -8,6 +8,7 @@ import "../modules/Operator.sol";
 interface IPPTCoin {
     function setTimeLimitation(uint256 _limitation) external;
     function changeTokenName(string calldata _name, string calldata _symbol,uint8 _decimals)external;
+    function lockedWorthOf(address account) external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
     function totalSupply() external view returns (uint256);
     function mint(address account, uint256 amount) external;

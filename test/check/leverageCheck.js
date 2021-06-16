@@ -67,7 +67,11 @@ module.exports = {
             await token.approve(contracts.leveragePool.address,amount,{from:account});
         }
         if(index == 0){
-            receipt = await contracts.leveragePool.buyLeverage2(amount,minAmount,this.getDeadLine(),[],{from:account});
+            if (token == eth){
+                receipt = await contracts.leveragePool.buyLeverage2(amount,minAmount,this.getDeadLine(),[],{from:account,value:amount});
+            }else{
+                receipt = await contracts.leveragePool.buyLeverage2(amount,minAmount,this.getDeadLine(),[],{from:account});
+            }
         }else{
             if (token == eth){
                 receipt = await contracts.leveragePool.buyHedge2(amount,minAmount,this.getDeadLine(),[],{from:account,value:amount});

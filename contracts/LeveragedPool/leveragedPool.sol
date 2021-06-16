@@ -13,7 +13,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     }
     function initialize() public{
         versionUpdater.initialize();
-        rebalanceTol = 105e6;
+        rebalanceTol = 5e7;
     }
     function update() external versionUpdate {
     }
@@ -278,7 +278,8 @@ contract leveragedPool is leveragedData,safeTransfer{
             totalWorth = allLoan.mul((feeDecimal-insterest)*feeDecimal)/(leverageRate-feeDecimal)/feeDecimal;
         }
         uint256 newUnderlying = totalWorth+allLoan;
-        if(newUnderlying*feeDecimal < oldUnderlying*rebalanceTol && oldUnderlying*feeDecimal < newUnderlying*rebalanceTol){
+        if(newUnderlying*feeDecimal < (oldUnderlying*feeDecimal).add(totalWorth*rebalanceTol) &&
+         (newUnderlying*feeDecimal).add(totalWorth*rebalanceTol) > oldUnderlying*feeDecimal){
             newUnderlying = oldUnderlying;
         }
         if(oldUnderlying>newUnderlying){

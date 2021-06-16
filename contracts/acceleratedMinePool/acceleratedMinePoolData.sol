@@ -31,8 +31,6 @@ contract acceleratedMinePoolData is versionUpdater,proxyOperator,AddressWhiteLis
     //The max loop when user does nothing to this pool for long long time .
     uint256 constant internal _maxLoop = 120;
 
-    // PPT address
-    address internal _PPT;
     IAccelerator public accelerator;
     uint256 public acceleratorStart;
     uint256 public acceleratorPeriod;

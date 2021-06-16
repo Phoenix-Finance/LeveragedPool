@@ -18,10 +18,9 @@ contract('leveragedPool', function (accounts){
     it('leveragedPool normal tests', async function (){
         await testETH(beforeInfo.USDC,beforeInfo,accounts,false);
     });
-    return;
     it('leveragedPool normal tests 2', async function (){
-        await testETH2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
-        await testETH2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
+//        await testETH2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
+//        await testETH2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
     })
     async function logInfo(tokenA,contracts){
         console.log("===============================================================");
@@ -87,12 +86,12 @@ contract('leveragedPool', function (accounts){
 //        console.log(events);
         await tokenA.approve(contracts.stakepool[0].address,"1000000000000000000000000");
         await contracts.stakepool[0].stake("1000000000000000000000000");
-        await contracts.stakepool[1].stake("1000000000000000000000000",{value:"1000000000000000000000000"});
+        await contracts.stakepool[1].stake("1000000000000000000000000",{from:accounts[9],value:"1000000000000000000000000"});
         await factoryInfo.factory.rebalanceAll();
-        await leverageCheck.buyLeverage(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
-        return;
+        await leverageCheck.buyLeverage2(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
         await logInfo(tokenA,tokenB,contracts);
-        await leverageCheck.buyLeverage(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
+        return;
+        await leverageCheck.buyLeverage2(eventDecoder,contracts,0,tokenAmount0,0,accounts[0]);
         await logInfo(tokenA,tokenB,contracts);
         prices = [priceA,priceB.sub(priceB.divn(20)),priceB.sub(priceB.divn(20))]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]); 
