@@ -7,7 +7,7 @@ pragma solidity =0.5.16;
 import "../modules/SafeMath.sol";
 import "./leverageFactoryData.sol";
 import "../proxy/phxProxy.sol";
-import "../leveragedPool/ILeveragedPool.sol";
+import "../LeveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
 import "../ERC20/IERC20.sol";
 import "../rebaseToken/IRebaseToken.sol";

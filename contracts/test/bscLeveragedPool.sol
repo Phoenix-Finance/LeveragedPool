@@ -1,5 +1,5 @@
 pragma solidity =0.5.16;
-import "../leveragedPool/leveragedPool.sol";
+import "../LeveragedPool/leveragedPool.sol";
 
 
 contract bscLeveragedPool is leveragedPool{
