@@ -39,7 +39,7 @@ contract leveragedPool is leveragedData,safeTransfer{
         return (leverageCoin.bRebase,hedgeCoin.bRebase);
     }
     function getCurrentLeverageRate()external view returns (uint256,uint256) {
-        uint256[2] memory underlyingPrice = _getUnderlyingPriceView();
+        uint256[2] memory underlyingPrice = getUnderlyingPriceView();
         return (_getCurrentLeverageRate(leverageCoin,underlyingPrice),_getCurrentLeverageRate(hedgeCoin,underlyingPrice));
     }
     function _getCurrentLeverageRate(leverageInfo memory coinInfo,uint256[2] memory underlyingPrice)internal view returns (uint256){
@@ -75,7 +75,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     }
     function setLeveragePoolInfo_sub(address rebaseTokenA,address rebaseTokenB,
         uint256 fees,uint256 _threshold,uint256 rebaseWorth) internal {
-        rebalancePrices = _getUnderlyingPriceView();
+        rebalancePrices = getUnderlyingPriceView();
         defaultLeverageRatio = uint64(fees>>192);
         defaultRebalanceWorth = rebaseWorth;
         leverageCoin.leverageRate = defaultLeverageRatio;
@@ -110,11 +110,11 @@ contract leveragedPool is leveragedData,safeTransfer{
         }
     }
     function getTotalworths() public view returns(uint256,uint256){
-        uint256[2] memory underlyingPrice = _getUnderlyingPriceView();
+        uint256[2] memory underlyingPrice = getUnderlyingPriceView();
         return (_totalWorth(leverageCoin,underlyingPrice),_totalWorth(hedgeCoin,underlyingPrice));
     }
     function getTokenNetworths() public view returns(uint256,uint256){
-        uint256[2] memory underlyingPrice = _getUnderlyingPriceView();
+        uint256[2] memory underlyingPrice = getUnderlyingPriceView();
         return (_tokenNetworth(leverageCoin,underlyingPrice),_tokenNetworth(hedgeCoin,underlyingPrice));
     }
     function _totalWorth(leverageInfo memory coinInfo,uint256[2] memory underlyingPrice) internal view returns (uint256){
@@ -124,7 +124,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     }
 
     function buyPrices() public view returns(uint256,uint256){
-        uint256[2] memory underlyingPrice = _getUnderlyingPriceView();
+        uint256[2] memory underlyingPrice = getUnderlyingPriceView();
         return (_tokenNetworthBuy(leverageCoin,underlyingPrice),_tokenNetworthBuy(hedgeCoin,underlyingPrice));
     }
     function _tokenNetworthBuy(leverageInfo memory coinInfo,uint256[2] memory underlyingPrice) internal view returns (uint256){
@@ -413,7 +413,7 @@ contract leveragedPool is leveragedData,safeTransfer{
         }
         return amount.sub(fee);
     }
-    function _getUnderlyingPriceView() internal view returns(uint256[2]memory){
+    function getUnderlyingPriceView() public view returns(uint256[2]memory){
         uint256[] memory assets = new uint256[](2);
         assets[0] = uint256(leverageCoin.token);
         assets[1] = uint256(hedgeCoin.token);
@@ -421,7 +421,7 @@ contract leveragedPool is leveragedData,safeTransfer{
         return [prices[0],prices[1]];
     }
     function getEnableRebalanceAndLiquidate()external view returns (bool,bool){
-        uint256[2]memory prices = _getUnderlyingPriceView();
+        uint256[2]memory prices = getUnderlyingPriceView();
         uint256 threshold = liquidateThreshold*39e7/feeDecimal;
         return (checkLiquidate(leverageCoin,prices,threshold),
                 checkLiquidate(hedgeCoin,prices,threshold));
@@ -439,7 +439,7 @@ contract leveragedPool is leveragedData,safeTransfer{
         _;
     }
     modifier getUnderlyingPrice(){
-        currentPrice = _getUnderlyingPriceView();
+        currentPrice = getUnderlyingPriceView();
         _;
     }
 }

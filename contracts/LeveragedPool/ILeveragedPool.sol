@@ -9,4 +9,8 @@ interface ILeveragedPool {
             address oracle,address swapRouter,address swaplib,address rebaseTokenA,address rebaseTokenB,
             uint256 fees,uint256 _threshold,uint256 rebaseWorth)external;
     function rebalance() external;
+    function getLeverageInfo() external view returns (address,address,address,uint256,uint256);
+    function getHedgeInfo() external view returns (address,address,address,uint256,uint256);
+    function buyPrices() external view returns(uint256,uint256);
+    function getUnderlyingPriceView() external view returns(uint256[2]memory);
 }
