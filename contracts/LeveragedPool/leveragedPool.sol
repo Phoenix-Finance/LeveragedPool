@@ -264,6 +264,14 @@ contract leveragedPool is leveragedData,safeTransfer{
         totalWorth = redeemFees(rebalanceFee,(coinInfo.id == 0) ? hedgeCoin.token : leverageCoin.token,totalWorth);
         uint256 oldUnderlying = underlyingBalance(coinInfo.id).mulPrice(currentPrice,coinInfo.id)/calDecimal;
         uint256 oldLoan = coinInfo.stakePool.loan(address(this));
+        uint256 oldLoanAdd = oldLoan.mul(feeDecimal)/(feeDecimal.sub(insterest)); 
+        if(oldUnderlying>oldLoanAdd){ 
+            uint256 leverageRate = oldUnderlying.mul(feeDecimal)/(oldUnderlying-oldLoanAdd);
+            if(leverageRate <defaultLeverageRatio+rebalanceTol &&
+                leverageRate >defaultLeverageRatio-rebalanceTol){
+                    return (0,0);
+            }
+        }
         uint256 leverageRate = defaultLeverageRatio;
         //allLoan = allworth*(l-1)/(1+lr-2r)
         uint256 allLoan = oldUnderlying.sub(oldLoan).mul(leverageRate-feeDecimal).mul(feeDecimal);
@@ -278,10 +286,6 @@ contract leveragedPool is leveragedData,safeTransfer{
             totalWorth = allLoan.mul((feeDecimal-insterest)*feeDecimal)/(leverageRate-feeDecimal)/feeDecimal;
         }
         uint256 newUnderlying = totalWorth+allLoan;
-        if(newUnderlying*feeDecimal < (oldUnderlying*feeDecimal).add(totalWorth*rebalanceTol) &&
-         (newUnderlying*feeDecimal).add(totalWorth*rebalanceTol) > oldUnderlying*feeDecimal){
-            newUnderlying = oldUnderlying;
-        }
         if(oldUnderlying>newUnderlying){
             return (0,oldUnderlying-newUnderlying);
         }else{

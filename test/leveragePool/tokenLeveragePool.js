@@ -16,12 +16,12 @@ contract('leveragedPool', function (accounts){
         eventDecoder.initEventsMap([FPTCoinAbi,leveragedPoolAbi,stakePoolAbi]);
     }); 
     it('leveragedPool normal tests', async function (){
-        await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
-        await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
+        await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts);
+        await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts);
     });
     it('leveragedPool normal tests 2', async function (){
-        await testToken2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts,false);
-        await testToken2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts,false);
+        await testToken2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts);
+        await testToken2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts);
     });
     async function logInfo(tokenA,tokenB,contracts){
         console.log("===============================================================");
@@ -52,12 +52,13 @@ contract('leveragedPool', function (accounts){
 
         console.log("===============================================================");
     }
-    async function testToken(tokenA,tokenB,beforeInfo,accounts,bFirst){
+    async function testToken(tokenA,tokenB,beforeInfo,accounts){
         let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0],accounts);
-        if(bFirst){
-            await testInfo.addLiquidity(beforeInfo,factoryInfo,tokenA,tokenB,accounts[0]);
-        }
         let pair = await beforeInfo.uniFactory.getPair(tokenA.address,tokenB.address);
+        if(pair == eth){
+            await testInfo.addLiquidity(beforeInfo,factoryInfo,tokenA,tokenB,accounts[0]);
+            pair = await beforeInfo.uniFactory.getPair(tokenA.address,tokenB.address);
+        }
         beforeInfo.pair = pair;
         /*
         let tokenaBalance = await tokenA.balanceOf(factoryInfo.uniSync.address);
@@ -137,12 +138,13 @@ contract('leveragedPool', function (accounts){
         await contracts.rebaseToken[1].approve(lToken.address,fnxBalance);
         await lToken.sellHedge(fnxBalance,10,leverageCheck.getDeadLine(),"0x");
     }
-    async function testToken2(tokenA,tokenB,beforeInfo,accounts,bFirst){
+    async function testToken2(tokenA,tokenB,beforeInfo,accounts){
         let factoryInfo = await testInfo.createFactory(beforeInfo,false,accounts[0],accounts);
-        if(bFirst){
-            await testInfo.addLiquidity(beforeInfo,factoryInfo,tokenA,tokenB,accounts[0]);
-        }
         let pair = await beforeInfo.uniFactory.getPair(tokenA.address,tokenB.address);
+        if(pair == eth){
+            await testInfo.addLiquidity(beforeInfo,factoryInfo,tokenA,tokenB,accounts[0]);
+            pair = await beforeInfo.uniFactory.getPair(tokenA.address,tokenB.address);
+        }
         beforeInfo.pair = pair;
         /*
         let tokenaBalance = await tokenA.balanceOf(factoryInfo.uniSync.address);

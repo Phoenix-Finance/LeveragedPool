@@ -30,8 +30,9 @@ contract leverageFactory is leverageFactoryData{
 
     function initialize() public{
         versionUpdater.initialize();
-        PPTTimeLimit = 60;
-        rebaseTimeLimit = 60;
+        //debug
+        PPTTimeLimit = 0;
+        rebaseTimeLimit = 0;
     }
     function update() public versionUpdate {
     }

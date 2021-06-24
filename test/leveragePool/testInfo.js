@@ -1,5 +1,5 @@
 const BN = require("bn.js");
-
+let contractInfo = require("./testInfo.json");
 const leveragedPool = artifacts.require("leveragedPool");
 const rebaseToken = artifacts.require("rebaseToken");
 const stakePool = artifacts.require("stakePool");
@@ -19,11 +19,11 @@ const IWETH = artifacts.require("IWETH");
 let eth = "0x0000000000000000000000000000000000000000";
 module.exports = {
     before : async function() {
-        let fnx = await IERC20.at("0x982c1E6bd1550c1702fEc0C7cf8E4eb358BD39ef");
-        let USDC = await IERC20.at("0x62f364c7127A16CE91dD68acB8476992044F5b39");
-        let WBTC = await IERC20.at("0xfD7601e484cc5532Beb5CB2ee52014EaFCAF3DAE");
-        let WETH = await IERC20.at("0x755C76b93c41e5Efb3966d9473Cfc79c31248F4D");
-        let univ2 = "0x82058af5c505D2A001d2600f645Ad188d626b77c";
+        let fnx = await IERC20.at(contractInfo.FNX);
+        let USDC = await IERC20.at(contractInfo.USDC);
+        let WBTC = await IERC20.at(contractInfo.WBTC);
+        let WETH = await IERC20.at(contractInfo.WETH);
+        let univ2 = contractInfo.UNIV2;
         let routerV2 = await IUniswapV2Router02.at(univ2);
         let addr = await routerV2.factory();
         let uniFactory = await IUniswapV2Factory.at(addr);
@@ -48,12 +48,15 @@ module.exports = {
         let pptCoin = await PPTCoin.new(multiSign.address,{from:account});
         let oracle;
         let sync;
-        if(bNewOracle){
+        if(!contractInfo.ORACLE){
             oracle = await PHXOracle.new();
             await oracle.setOperator(3,account,{from:account});
             sync = await uniswapSync.new(oracle.address);
             console.log("oracle Address : ",oracle.address)
             console.log("uniswapSync Address : ",sync.address)
+            contractInfo.ORACLE = oracle.address;
+            contractInfo.SYNC = sync.address;
+            fs.writeFileSync('./testInfo.json', JSON.stringify(contractInfo,null,4));
         }else{
             oracle = await PHXOracle.at("0x42d04599c41580C99f6F9cf26Ac7999Ef0cA8C36");
             sync = await uniswapSync.at("0xE948e0674044d9983E4864b74E440a655E2b14a9");
