@@ -29,7 +29,7 @@ contract leverageFactoryData is versionUpdater,proxyOperator{
     mapping(uint256=>proxyInfo) public proxyinfoMap;
     mapping(address=>address payable) public stakePoolMap;
     mapping(bytes32=>address payable) public leveragePoolMap;
-    address public accelerator;
+    address public vestingPool;
 
     string public baseCoinName;
 

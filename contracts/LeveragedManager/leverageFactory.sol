@@ -37,14 +37,14 @@ contract leverageFactory is leverageFactoryData{
     function update() public versionUpdate {
     }
     function setImplementAddress(string memory _baseCoinName,address payable _feeAddress,address rebaseOperator,address _stakePoolImpl,address _leveragePoolImpl,address _PPTCoinImpl,
-        address _rebaseTokenImpl,address acceleratedMinePool,address PHXAccelerator,address _phxOracle)public originOnce{
+        address _rebaseTokenImpl,address acceleratedMinePool,address PHXVestingPool,address _phxOracle)public originOnce{
         baseCoinName = _baseCoinName;
         proxyinfoMap[LeveragePoolID].implementation = _leveragePoolImpl;
         proxyinfoMap[stakePoolID].implementation = _stakePoolImpl;
         proxyinfoMap[rebasePoolID].implementation = _rebaseTokenImpl;
         proxyinfoMap[PPTTokenID].implementation = _PPTCoinImpl;
         proxyinfoMap[MinePoolID].implementation = acceleratedMinePool;
-        accelerator = PHXAccelerator;  
+        vestingPool = PHXVestingPool;  
         phxOracle = _phxOracle;
         feeAddress = _feeAddress;
         _operators[1] = rebaseOperator;
@@ -169,7 +169,7 @@ contract leverageFactory is leverageFactoryData{
     }
     function createAcceleratedMinePool()internal returns(address){
         address payable newCoin = createPhxProxy(MinePoolID);
-        IAcceleratedMinePool(newCoin).setAccelerator(accelerator);
+        IAcceleratedMinePool(newCoin).setPHXVestingPool(vestingPool);
         return newCoin;
     }
     function createPhxProxy(uint256 index) internal returns (address payable){
@@ -190,9 +190,9 @@ contract leverageFactory is leverageFactoryData{
             Address.functionCall(curInfo.proxyList[i],data,"setContractsInfo error");
         }
     }
-    function setAccelerator(address _accelerator) public onlyOrigin{
-        accelerator = _accelerator;
-        setContractsInfo(MinePoolID,abi.encodeWithSignature("setAccelerator(address)",_accelerator));
+    function setPHXVestingPool(address _PHXVestingPool) public onlyOrigin{
+        vestingPool = _PHXVestingPool;
+        setContractsInfo(MinePoolID,abi.encodeWithSignature("setPHXVestingPool(address)",_PHXVestingPool));
     }
     function setSwapRouterAddress(address _swapRouter)public onlyOrigin{
         swapRouter = _swapRouter;

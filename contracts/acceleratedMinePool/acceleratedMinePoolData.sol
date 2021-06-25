@@ -15,7 +15,7 @@ import "../modules/safeTransfer.sol";
  *      Users who both stake some PHX coins will get more bonus in mine pool.
  *      Users who Lock PHX coins will get several times than normal miners.
  */
- interface IAccelerator {
+ interface IPHXVestingPool {
     function getAcceleratedBalance(address account,address minePool)external view returns(uint256,uint64); 
     function getAcceleratorPeriodInfo()external view returns (uint256,uint256);
 }
@@ -31,7 +31,7 @@ contract acceleratedMinePoolData is versionUpdater,proxyOperator,AddressWhiteLis
     //The max loop when user does nothing to this pool for long long time .
     uint256 constant internal _maxLoop = 120;
 
-    IAccelerator public accelerator;
+    IPHXVestingPool public vestingPool;
     uint256 public acceleratorStart;
     uint256 public acceleratorPeriod;
     struct userInfo {

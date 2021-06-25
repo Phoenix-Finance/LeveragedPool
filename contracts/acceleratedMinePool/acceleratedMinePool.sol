@@ -23,9 +23,9 @@ contract acceleratedMinePool is acceleratedMinePoolData {
 
     function update() external versionUpdate {
     }
-    function setAccelerator(address _accelerator) external onlyOwner {
-        accelerator = IAccelerator(_accelerator);
-        (acceleratorStart,acceleratorPeriod) = accelerator.getAcceleratorPeriodInfo();
+    function setPHXVestingPool(address _PHXVestingPool) external onlyOwner {
+        vestingPool = IPHXVestingPool(_PHXVestingPool);
+        (acceleratorStart,acceleratorPeriod) = vestingPool.getAcceleratorPeriodInfo();
     }
     /**
      * @dev getting user's staking PPT balance.
@@ -401,14 +401,14 @@ contract acceleratedMinePool is acceleratedMinePoolData {
     }
 
     function changePPTBalance(address account) internal {
-        (uint256 acceleratedStake,uint256 acceleratedPeriod) = accelerator.getAcceleratedBalance(account,address(this));
+        (uint256 acceleratedStake,uint256 acceleratedPeriod) = vestingPool.getAcceleratedBalance(account,address(this));
         removeDistribution(account,acceleratedStake,acceleratedPeriod);
         userInfoMap[account].pptBalance = IERC20(_operators[managerIndex]).balanceOf(account);
         addDistribution(account,acceleratedStake,acceleratedPeriod);
     }
     function changeAcceleratedInfo(address account,uint256 oldAcceleratedStake,uint64 oldAcceleratedPeriod) public onlyAccelerator{
         removeDistribution(account,oldAcceleratedStake,oldAcceleratedPeriod);
-        (uint256 acceleratedStake,uint64 acceleratedPeriod) = accelerator.getAcceleratedBalance(account,address(this));
+        (uint256 acceleratedStake,uint64 acceleratedPeriod) = vestingPool.getAcceleratedBalance(account,address(this));
         addDistribution(account,acceleratedStake,acceleratedPeriod);
     }
     /**
@@ -511,7 +511,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         return periodID.mul(acceleratorPeriod).add(acceleratorStart);
     }  
     modifier onlyAccelerator() {
-        require(address(accelerator) == msg.sender, "accelerator: caller is not the accelerator");
+        require(address(vestingPool) == msg.sender, "vestingPool: caller is not the vestingPool");
         _;
     }
 }
