@@ -24,9 +24,9 @@ contract stakePoolData is ImportIPPTCoin,versionUpdater,ReentrancyGuard,AddressP
     uint64 internal _defaultRate;
     mapping (address => uint256) internal loanAccountMap;
     event Borrow(address indexed from,address indexed token,uint256 reply,uint256 loan);
+    event Interest(address indexed from,address indexed token,uint256 interest);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
     event Stake(address indexed from,address indexed token,uint256 amount,uint256 mintAmount);
     event Unstake(address indexed from,address indexed token,uint256 amount,uint256 burnAmount);
     event Repay(address indexed from,address indexed token,uint256 amount,uint256 leftLoan);
-    event RepayAndInterest(address indexed from,address indexed token,uint256 amount,uint256 leftLoan);
 }

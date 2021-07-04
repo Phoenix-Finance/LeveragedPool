@@ -17,8 +17,9 @@ contract('leveragedPool', function (accounts){
     }); 
     it('leveragedPool normal tests', async function (){
         await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts);
-        await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts);
+        //await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts);
     });
+    return;
     it('leveragedPool normal tests 2', async function (){
         await testToken2(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts);
         await testToken2(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts);
@@ -106,10 +107,10 @@ contract('leveragedPool', function (accounts){
         fnxBalance = fnxBalance.divn(10)
         console.log("rebase Balance : ",fnxBalance.toString());
         await contracts.rebaseToken[0].approve(lToken.address,fnxBalance);
-        await lToken.sellLeverage(fnxBalance,10,leverageCheck.getDeadLine(),"0x");
-        receipt = await factoryInfo.factory.rebalanceAll();
+        receipt = await lToken.sellLeverage(fnxBalance,10,leverageCheck.getDeadLine(),"0x");
         events = eventDecoder.decodeTxEvents(receipt);
         console.log(events);
+        await factoryInfo.factory.rebalanceAll();
         await logInfo(tokenA,tokenB,contracts);
         prices = [priceA,priceB.sub(priceB.divn(5))]
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]); 

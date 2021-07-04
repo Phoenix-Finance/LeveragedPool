@@ -40,10 +40,10 @@ contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGu
     uint256 public rebalanceTol;
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
     event Redeem(address indexed recieptor,address indexed Coin,uint256 amount);
-    event BuyLeverage(address indexed from,address indexed Coin,uint256 amount,uint256 leverageAmount);
-    event BuyHedge(address indexed from,address indexed Coin,uint256 amount,uint256 hedgeAmount);
-    event SellLeverage(address indexed from,address indexed Coin,uint256 leverageAmount,uint256 amount);
-    event SellHedge(address indexed from,address indexed Coin,uint256 hedgeAmount,uint256 amount);
+    event BuyLeverage(address indexed from,address indexed Coin,uint256 payAmount,uint256 leverageAmount,uint256 tokenPrice);
+    event BuyHedge(address indexed from,address indexed Coin,uint256 payAmount,uint256 hedgeAmount,uint256 tokenPrice);
+    event SellLeverage(address indexed from,address indexed Coin,uint256 leverageAmount,uint256 amount,uint256 tokenPrice);
+    event SellHedge(address indexed from,address indexed Coin,uint256 hedgeAmount,uint256 amount,uint256 tokenPrice);
     event Rebalance(address indexed from,address indexed token,uint256 buyAount,uint256 sellAmount);
     event Liquidate(address indexed from,address indexed token,uint256 loan,uint256 fee,uint256 leftAmount);
 }

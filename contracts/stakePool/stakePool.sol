@@ -70,15 +70,18 @@ contract stakePool is stakePoolData,safeTransfer{
         _totalSupply = _totalSupply.add(amount-reply);
         _redeem(msg.sender,_poolToken,reply);
         emit Borrow(msg.sender,_poolToken,reply,amount);
+        emit Interest(msg.sender,_poolToken,amount-reply);
         return reply;
     }
     function borrowAndInterest(uint256 amount) public addressPermissionAllowed(msg.sender,allowBorrow){
         //l1*r + (l0-l1) = -amount
         uint256 _loan = loanAccountMap[msg.sender].add(amount).mul(calDecimal)/(calDecimal-_interestRate);
         loanAccountMap[msg.sender] = _loan;
-        _totalSupply = _totalSupply.add(_loan.mul(_interestRate).div(calDecimal));
+        uint256 interest = _loan.mul(_interestRate).div(calDecimal);
+        _totalSupply = _totalSupply.add(interest);
         _redeem(msg.sender,_poolToken,amount);
         emit Borrow(msg.sender,_poolToken,amount,_loan);
+        emit Interest(msg.sender,_poolToken,interest);
     }
     function repay(uint256 amount,bool bAll) public payable addressPermissionAllowed(msg.sender,allowRepay) {
         amount = getPayableAmount(_poolToken,amount);
@@ -95,8 +98,10 @@ contract stakePool is stakePoolData,safeTransfer{
         //l1*r + (l0-l1) = amount
         uint256 _loan = loanAccountMap[msg.sender].sub(amount).mul(calDecimal)/(calDecimal-_interestRate);
         loanAccountMap[msg.sender] = _loan;
-        _totalSupply = _totalSupply.add(_loan.mul(_interestRate).div(calDecimal));
-        emit RepayAndInterest(msg.sender,_poolToken,amount,_loan);
+        uint256 interest = _loan.mul(_interestRate).div(calDecimal);
+        _totalSupply = _totalSupply.add(interest);
+        emit Repay(msg.sender,_poolToken,amount,_loan);
+        emit Interest(msg.sender,_poolToken,interest);
     }
     function PPTTotalSuply()public view returns (uint256){
         return _PPTCoin.totalSupply();

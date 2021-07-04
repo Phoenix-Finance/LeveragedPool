@@ -28,6 +28,7 @@ module.exports = {
     },
     checkInfo : async function (rebaseBalancePre,receipt,eventDecoder,contracts,index,amount,account){
         let events = eventDecoder.decodeTxEvents(receipt);
+        console.log(events);
         let fee = await contracts.leveragePool.buyFee();
         fee = amount.mul(fee).div(this.feeDecimal)
         let feeEvent = this.findEvent(events,"Redeem",0)
@@ -79,7 +80,7 @@ module.exports = {
                 receipt = await contracts.leveragePool.buyHedge2(amount,minAmount,this.getDeadLine(),[],{from:account});
             }
         }
-        //await this.checkInfo(rebaseBalancePre,receipt,eventDecoder,contracts,index,amount,account);
+        await this.checkInfo(rebaseBalancePre,receipt,eventDecoder,contracts,index,amount,account);
     },
     rebalance : async function(eventDecoder,contracts,index,account) {
         let receipt = await contracts.leveragePool.rebalance({from:account});
@@ -94,6 +95,7 @@ module.exports = {
             receipt = await lToken.sellHedge(fnxBalance,this.getDeadLine(),[]);
         }
         let events = eventDecoder.decodeTxEvents(receipt);
+        console.log(events);
         let fee = await contracts.leveragePool.buyFee();
         fee = amount.mul(fee).div(this.feeDecimal)
         let feeEvent = this.findEvent(events,"Redeem",0)

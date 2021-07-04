@@ -14,7 +14,6 @@ import "../modules/SafeMath.sol";
  */
 contract PPTCoin is SharedCoin {
     using SafeMath for uint256;
-    mapping (address => bool) internal timeLimitWhiteList;
     constructor (address multiSignature) proxyOwner(multiSignature) public{
     }
     function initialize() public{

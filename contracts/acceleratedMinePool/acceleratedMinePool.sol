@@ -40,9 +40,9 @@ contract acceleratedMinePool is acceleratedMinePoolData {
      */
     function getMineWeightRatio()public view returns (uint256) {
         if(totalDistribution > 0) {
-            return getweightDistribution(getPeriodIndex(currentTime()))*1000/totalDistribution;
+            return getweightDistribution(getPeriodIndex(currentTime()))*rateDecimal/totalDistribution;
         }else{
-            return 1000;
+            return rateDecimal;
         }
     }
     /**
@@ -56,7 +56,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
      * @param mineCoin mineCoin address
      * @param amount redeem amount.
      */
-    function redeemOut(address mineCoin,uint256 amount)public onlyOrigin{
+    function redeemOut(address mineCoin,uint256 amount)public nonReentrant onlyOrigin{
         _redeem(msg.sender,mineCoin,amount);
     }
     /**
@@ -151,7 +151,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         }
         uint256 baseMine = mineInfoMap[mineCoin].mineAmount.mul(365 days).mul(
                 userInfoMap[account].distribution)/totalDistribution/mineInfoMap[mineCoin].mineInterval;
-        return baseMine.mul(getPeriodWeight(getPeriodIndex(currentTime()),userInfoMap[account].maxPeriodID))/1000;
+        return baseMine.mul(getPeriodWeight(getPeriodIndex(currentTime()),userInfoMap[account].maxPeriodID))/rateDecimal;
     }
     /**
      * @dev the auxiliary function for _mineSettlementAll.
@@ -288,7 +288,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
                 break;
             }
             netWorth = getPeriodNetWorth(mineCoin,userperiod,netWorth);
-            latestMined = latestMined.add(userDistri.mul(netWorth.sub(origin)).mul(getPeriodWeight(userperiod,userMaxPeriod))/1000/calDecimals);
+            latestMined = latestMined.add(userDistri.mul(netWorth.sub(origin)).mul(getPeriodWeight(userperiod,userMaxPeriod))/rateDecimal/calDecimals);
             origin = netWorth;
             userperiod++;
         }
@@ -381,7 +381,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         uint256 origin = userInfoMap[account].minerOrigins[mineCoin];
         uint256 userMaxPeriod = userInfoMap[account].maxPeriodID;
         require(tokenNetWorth>=origin,"error: tokenNetWorth logic error!");
-        return userInfoMap[account].distribution.mul(tokenNetWorth-origin).mul(getPeriodWeight(periodID,userMaxPeriod))/1000/calDecimals;
+        return userInfoMap[account].distribution.mul(tokenNetWorth-origin).mul(getPeriodWeight(periodID,userMaxPeriod))/rateDecimal/calDecimals;
     }
         /**
      * @dev transfer mineCoin to recieptor when account transfer amount PPTCoin to recieptor, only manager contract can modify database.
@@ -426,9 +426,10 @@ contract acceleratedMinePool is acceleratedMinePoolData {
         uint256 nowId = getPeriodIndex(currentTime());
         uint256 endId = userInfoMap[account].maxPeriodID;
         for(;nowId<=endId;nowId++){
-            weightDistributionMap[nowId] = weightDistributionMap[nowId].sub(distri.mul(getPeriodWeight(nowId,endId)-1000)/1000);
+            weightDistributionMap[nowId] = weightDistributionMap[nowId].sub(distri.mul(getPeriodWeight(nowId,endId)-rateDecimal)/rateDecimal);
         }
         userInfoMap[account].distribution =  0;
+        userInfoMap[account].maxPeriodID =  0;
     }
     /**
      * @dev Auxiliary function. Add user's distribution amount.
@@ -437,9 +438,8 @@ contract acceleratedMinePool is acceleratedMinePoolData {
     function addDistribution(address account,uint256 acceleratedStake,uint256 acceleratedPeriod) internal {
         uint256 distri = calculateDistribution(account,acceleratedStake,acceleratedPeriod);
         uint256 nowId = getPeriodIndex(currentTime());
-        uint256 endId = userInfoMap[account].maxPeriodID;
-        for(;nowId<=endId;nowId++){
-            weightDistributionMap[nowId] = weightDistributionMap[nowId].add(distri.mul(getPeriodWeight(nowId,endId)-1000)/1000);
+        for(;nowId<=acceleratedPeriod;nowId++){
+            weightDistributionMap[nowId] = weightDistributionMap[nowId].add(distri.mul(getPeriodWeight(nowId,acceleratedPeriod)-rateDecimal)/rateDecimal);
         }
         userInfoMap[account].distribution =  distri;
         userInfoMap[account].maxPeriodID = acceleratedPeriod;
@@ -466,7 +466,7 @@ contract acceleratedMinePool is acceleratedMinePoolData {
      */
     function getPeriodWeight(uint256 currentID,uint256 maxPeriod) public pure returns (uint256) {
         if (maxPeriod == 0 || currentID > maxPeriod){
-            return 1000;
+            return rateDecimal;
         }
         uint256 curLocked = maxPeriod-currentID;
         if(curLocked == 0){

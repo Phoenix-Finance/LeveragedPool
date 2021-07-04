@@ -48,4 +48,7 @@ contract leverageFactoryData is versionUpdater,proxyOperator{
     uint64 public rebalanceInterval;
     address public phxSwapLib;
     uint64 public lastRebalance;
+    event CreateLeveragePool(address indexed leveragePool,address indexed  tokenA,address indexed  tokenB,
+        uint256 leverageRatio,uint256 leverageRebaseWorth);
+    event CreateStakePool(address indexed stakePool,address indexed token,uint256 interestrate);
 }

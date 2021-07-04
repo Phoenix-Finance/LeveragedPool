@@ -80,7 +80,7 @@ contract leverageFactory is leverageFactoryData{
         IStakePool(_stakePoolA).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
         IStakePool(_stakePoolB).modifyPermission(_leveragePool,0xFFFFFFFFFFFFFFFF);
         setLeveragePoolInfo_sub(_stakePoolA,_stakePoolB,_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth);
-        
+        emit CreateLeveragePool(_leveragePool,tokenA,tokenB,leverageRatio,leverageRebaseWorth);
     }
     function setLeveragePoolInfo_sub(address _stakePoolA,address _stakePoolB,address payable _leveragePool,
         address tokenA,address tokenB,uint64 leverageRatio,
@@ -152,6 +152,7 @@ contract leverageFactory is leverageFactoryData{
             IStakePool(stakePool).setPoolInfo(pptCoin,token,_interestrate);
             proxyOperator(pptCoin).setManager(stakePool);
             stakePoolMap[token] = stakePool;
+            emit CreateStakePool(stakePool,token,_interestrate);
         }
         return stakePool;
     }

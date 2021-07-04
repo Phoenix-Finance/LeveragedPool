@@ -184,25 +184,28 @@ contract leveragedPool is leveragedData,safeTransfer{
         }
         amount = getPayableAmount(inputToken,amount);
         require(amount > 0, 'buy amount is zero');
+        uint256 userPay = amount;
         amount = redeemFees(buyFee,inputToken,amount);
-        uint256 leverageAmount = bFirstToken ? amount.mul(calDecimal)/_tokenNetworthBuy(coinInfo,currentPrice) :
-            amount.mulPrice(currentPrice,coinInfo.id)/_tokenNetworthBuy(coinInfo,currentPrice);
+        uint256 price = _tokenNetworthBuy(coinInfo,currentPrice);
+        uint256 leverageAmount = bFirstToken ? amount.mul(calDecimal)/price :
+            amount.mulPrice(currentPrice,coinInfo.id)/price;
         require(leverageAmount>=minAmount,"token amount is less than minAmount");
-        uint256 userLoan = (leverageAmount.mul(coinInfo.rebalanceWorth)/calDecimal).mul(coinInfo.leverageRate-feeDecimal)/feeDecimal;
-        userLoan = coinInfo.stakePool.borrow(userLoan);
-        amount = bFirstToken ? userLoan.add(amount) : userLoan;
-        //98%
         {
+            uint256 userLoan = (leverageAmount.mul(coinInfo.rebalanceWorth)/calDecimal).mul(coinInfo.leverageRate-feeDecimal)/feeDecimal;
+            userLoan = coinInfo.stakePool.borrow(userLoan);
+            amount = bFirstToken ? userLoan.add(amount) : userLoan;
+            //98%
             uint256 amountOut = amount.mul(98e16).divPrice(currentPrice,coinInfo.id);
             address token1 = (coinInfo.id == 0) ? hedgeCoin.token : leverageCoin.token;
             amount = _swap(coinInfo.token,token1,amount);
             require(amount>=amountOut, "swap slip page is more than 2%");
         }
         coinInfo.leverageToken.mint(msg.sender,leverageAmount);
+        price = price.mul(currentPrice[coinInfo.id])/calDecimal;
         if(coinInfo.id == 0){
-            emit BuyLeverage(msg.sender,inputToken,amount,leverageAmount);
+            emit BuyLeverage(msg.sender,inputToken,userPay,leverageAmount,price);
         }else{
-            emit BuyHedge(msg.sender,inputToken,amount,leverageAmount);
+            emit BuyHedge(msg.sender,inputToken,userPay,leverageAmount,price);
         }  
     }
     function _sellSwap(uint8 id,uint256 sellAmount,uint256 userLoan)internal returns(uint256){
@@ -236,12 +239,16 @@ contract leveragedPool is leveragedData,safeTransfer{
         }
         userLoan = userLoan/calDecimal;
         address outputToken;
+        uint256 sellPrice;
         if (bFirstToken){
             userPayback = _sellSwap(coinInfo.id,sellAmount,userLoan);
             outputToken = coinInfo.token;
+            sellPrice = userPayback.mul(currentPrice[coinInfo.id])/amount;
         }else{
             userPayback = _sellSwap2(coinInfo.id,sellAmount,userLoan);
             outputToken = coinInfo.id == 0 ? hedgeCoin.token : leverageCoin.token;
+            uint256 id = coinInfo.id == 0 ? 1 : 0;
+            sellPrice = userPayback.mul(currentPrice[id])/amount;
         }
         userPayback = redeemFees(sellFee,outputToken,userPayback);
         require(userPayback >= minAmount, "Repay amount is less than minAmount");
@@ -250,9 +257,9 @@ contract leveragedPool is leveragedData,safeTransfer{
         //burn must run after getnetworth
         coinInfo.leverageToken.burn(msg.sender,amount);
         if(coinInfo.id == 0){
-            emit SellLeverage(msg.sender,outputToken,amount,userPayback);
+            emit SellLeverage(msg.sender,outputToken,amount,userPayback,sellPrice);
         }else{
-            emit SellHedge(msg.sender,outputToken,amount,userPayback);
+            emit SellHedge(msg.sender,outputToken,amount,userPayback,sellPrice);
         } 
     }
     function _settle(leverageInfo storage coinInfo) internal returns(uint256,uint256){

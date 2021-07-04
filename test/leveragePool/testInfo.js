@@ -77,6 +77,8 @@ module.exports = {
             rTokenImply.address,minePool.address,acceleratorProxy.address,oracle.address)
         await lFactory.initFactoryInfo(beforeInfo.univ2,uniswap.address,1,1e5,1e5,1e5,15e7,1e7,1001e5,{from:account});
         await this.multiSignatureAndSend(multiSign,lFactory,"setOperator",account,accounts,1,account)
+        await this.multiSignatureAndSend(multiSign,lFactory,"setRebaseTimeLimit",account,accounts,0)
+        await this.multiSignatureAndSend(multiSign,lFactory,"setPPTTimeLimit",account,accounts,0)
         let operator = await lFactory.getOperator(1)
         console.log("operator address",operator)
 //        await lFactory.setOperator(1,account,{from:account});

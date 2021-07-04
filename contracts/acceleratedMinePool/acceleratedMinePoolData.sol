@@ -27,6 +27,7 @@ contract acceleratedMinePoolData is versionUpdater,proxyOperator,AddressWhiteLis
     }
     //Special decimals for calculation
     uint256 constant calDecimals = 1e18;
+    uint256 constant internal rateDecimal = 1e8;
 
     //The max loop when user does nothing to this pool for long long time .
     uint256 constant internal _maxLoop = 120;
