@@ -4,8 +4,8 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../proxyModules/versionUpdater.sol";
-import "../proxyModules/proxyOperator.sol";
+import "../PhoenixModules/proxyModules/versionUpdater.sol";
+import "../PhoenixModules/proxyModules/proxyOperator.sol";
 /**
  * @title leverage contract factory.
  * @dev A smart-contract which manage leverage smart-contract's and peripheries.

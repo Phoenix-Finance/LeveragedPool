@@ -1,8 +1,8 @@
 pragma solidity =0.5.16;
-import "../ERC20/safeErc20.sol";
-import "../modules/SafeMath.sol";
+import "../PhoenixModules/ERC20/safeErc20.sol";
+import "../PhoenixModules/modules/SafeMath.sol";
 import "./leveragedData.sol";
-import "../modules/safeTransfer.sol";
+import "../PhoenixModules/modules/safeTransfer.sol";
 
 contract leveragedPool is leveragedData,safeTransfer{
     using SafeMath for uint256;

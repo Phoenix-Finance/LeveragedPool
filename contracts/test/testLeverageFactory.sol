@@ -1,8 +1,8 @@
 pragma solidity =0.5.16;
 import "../rebaseToken/IRebaseToken.sol";
-import "../proxy/phxProxy.sol";
-import "../proxyModules/proxyOperator.sol";
-import "../PPTCoin/IPPTCoin.sol";
+import "../PhoenixModules/proxy/phxProxy.sol";
+import "../PhoenixModules/proxyModules/proxyOperator.sol";
+import "../PhoenixModules/PPTCoin/IPPTCoin.sol";
 import "../stakePool/IStakePool.sol";
 contract testLeverageFactory {
     address public newContract;

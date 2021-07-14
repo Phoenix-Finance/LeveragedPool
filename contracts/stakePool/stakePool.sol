@@ -4,17 +4,17 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../ERC20/safeErc20.sol";
-import "../modules/SafeMath.sol";
+import "../PhoenixModules/ERC20/safeErc20.sol";
+import "../PhoenixModules/modules/SafeMath.sol";
 import "./stakePoolData.sol";
-import "../modules/safeTransfer.sol";
+import "../PhoenixModules/modules/safeTransfer.sol";
 contract stakePool is stakePoolData,safeTransfer{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     constructor (address multiSignature) proxyOwner(multiSignature) public{
     }
     function setPoolInfo(address PPTToken,address stakeToken,uint64 interestrate) public onlyOwner{
-        _PPTCoin = IPPTCoin(PPTToken);
+        pptCoin = IPPTCoin(PPTToken);
         _poolToken = stakeToken;
         _interestRate = interestrate;
         _defaultRate = interestrate;
@@ -104,7 +104,7 @@ contract stakePool is stakePoolData,safeTransfer{
         emit Interest(msg.sender,_poolToken,interest);
     }
     function PPTTotalSuply()public view returns (uint256){
-        return _PPTCoin.totalSupply();
+        return pptCoin.totalSupply();
     }
     function tokenNetworth() public view returns (uint256){
         uint256 tokenNum = PPTTotalSuply();
@@ -116,7 +116,7 @@ contract stakePool is stakePoolData,safeTransfer{
         uint256 netWorth = tokenNetworth();
         uint256 mintAmount = amount.mul(calDecimal)/netWorth;
         _totalSupply = _totalSupply.add(amount);
-        _PPTCoin.mint(msg.sender,mintAmount);
+        pptCoin.mint(msg.sender,mintAmount);
         emit Stake(msg.sender,_poolToken,amount,mintAmount);
     }
     function unstake(uint256 amount) external nonReentrant notHalted {
@@ -124,7 +124,7 @@ contract stakePool is stakePoolData,safeTransfer{
         uint256 netWorth = tokenNetworth();
         uint256 redeemAmount = netWorth.mul(amount)/calDecimal;
         require(redeemAmount<=poolBalance(),"Available pool liquidity is unsufficient");
-        _PPTCoin.burn(msg.sender,amount);
+        pptCoin.burn(msg.sender,amount);
         _totalSupply = _totalSupply.sub(redeemAmount);
         _redeem(msg.sender,_poolToken,redeemAmount);
         emit Unstake(msg.sender,_poolToken,redeemAmount,amount);

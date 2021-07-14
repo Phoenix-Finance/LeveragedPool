@@ -4,12 +4,12 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../PPTCoin/IPPTCoin.sol";
-import "../proxyModules/versionUpdater.sol";
-import "../modules/ReentrancyGuard.sol";
-import "../proxyModules/AddressPermission.sol";
-import "../proxyModules/Halt.sol";
-contract stakePoolData is ImportIPPTCoin,versionUpdater,ReentrancyGuard,AddressPermission,Halt{
+import "../PhoenixModules/PPTCoin/IPPTCoin.sol";
+import "../PhoenixModules/proxyModules/versionUpdater.sol";
+import "../PhoenixModules/modules/ReentrancyGuard.sol";
+import "../PhoenixModules/proxyModules/AddressPermission.sol";
+import "../PhoenixModules/proxyModules/Halt.sol";
+contract stakePoolData is versionUpdater,ReentrancyGuard,AddressPermission,Halt{
     uint256 constant internal currentVersion = 3;
     function implementationVersion() public pure returns (uint256) 
     {
@@ -21,6 +21,7 @@ contract stakePoolData is ImportIPPTCoin,versionUpdater,ReentrancyGuard,AddressP
     uint256 internal _totalSupply;
     address internal _poolToken;
     uint64 internal _interestRate;
+    IPPTCoin public pptCoin;
     uint64 internal _defaultRate;
     mapping (address => uint256) internal loanAccountMap;
     event Borrow(address indexed from,address indexed token,uint256 reply,uint256 loan);

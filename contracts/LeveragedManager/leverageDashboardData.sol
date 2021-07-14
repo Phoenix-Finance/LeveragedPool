@@ -4,7 +4,7 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../proxyModules/versionUpdater.sol";
+import "../PhoenixModules/proxyModules/versionUpdater.sol";
 import "./ILeverageFactory.sol";
 
 /**

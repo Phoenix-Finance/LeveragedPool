@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "../ERC20/IERC20.sol";
+import "../PhoenixModules/ERC20/IERC20.sol";
 
 //
 //  [ msg.sender ]

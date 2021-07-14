@@ -1,6 +1,6 @@
 pragma solidity =0.5.16;
-import "../interface/IPHXOracle.sol";
-import "../ERC20/safeErc20.sol";
+import "../PhoenixModules/interface/IPHXOracle.sol";
+import "../PhoenixModules/ERC20/safeErc20.sol";
 import "../uniswap/IUniswapV2Pair.sol";
 contract uniswapSync {
     using SafeERC20 for IERC20;

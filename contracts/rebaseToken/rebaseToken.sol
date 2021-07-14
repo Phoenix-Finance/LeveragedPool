@@ -5,7 +5,7 @@ pragma solidity =0.5.16;
  * Copyright (C) 2020 Phoenix Options Protocol
  */
 import "./rebaseTokenData.sol";
-import "../modules/SafeMath.sol";
+import "../PhoenixModules/modules/SafeMath.sol";
 contract rebaseToken is rebaseTokenData {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -61,7 +61,7 @@ contract rebaseToken is rebaseTokenData {
         }
         return amount;
     }
-    function redeemToken() public {
+    function redeemToken() public nonReentrant {
         uint256 amount = getRedeemAmount(msg.sender);
         if(amount > 0){
             _redeem(msg.sender,leftToken,amount);

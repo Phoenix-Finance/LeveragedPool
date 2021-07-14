@@ -4,7 +4,7 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../modules/SafeMath.sol";
+import "../PhoenixModules/modules/SafeMath.sol";
 import "./leverageDashboardData.sol";
 import "../LeveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";

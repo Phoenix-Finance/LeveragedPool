@@ -4,11 +4,12 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../ERC20/safeErc20.sol";
-import "../proxyModules/versionUpdater.sol";
-import "../proxyModules/timeLimitation.sol";
-import "../proxyModules/proxyOperator.sol";
-contract rebaseTokenData is versionUpdater,proxyOperator,timeLimitation{
+import "../PhoenixModules/ERC20/safeErc20.sol";
+import "../PhoenixModules/proxyModules/versionUpdater.sol";
+import "../PhoenixModules/proxyModules/timeLimitation.sol";
+import "../PhoenixModules/proxyModules/proxyOperator.sol";
+import "../PhoenixModules/modules/ReentrancyGuard.sol";
+contract rebaseTokenData is versionUpdater,proxyOperator,ReentrancyGuard,timeLimitation{
     uint256 constant internal currentVersion = 3;
     function implementationVersion() public pure returns (uint256) 
     {

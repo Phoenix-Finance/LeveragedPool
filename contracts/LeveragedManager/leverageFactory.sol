@@ -4,16 +4,16 @@ pragma solidity =0.5.16;
  * Phoenix
  * Copyright (C) 2020 Phoenix Options Protocol
  */
-import "../modules/SafeMath.sol";
+import "../PhoenixModules/modules/SafeMath.sol";
 import "./leverageFactoryData.sol";
-import "../proxy/phxProxy.sol";
+import "../PhoenixModules/proxy/phxProxy.sol";
 import "../LeveragedPool/ILeveragedPool.sol";
 import "../stakePool/IStakePool.sol";
-import "../ERC20/IERC20.sol";
+import "../PhoenixModules/ERC20/IERC20.sol";
 import "../rebaseToken/IRebaseToken.sol";
-import "../acceleratedMinePool/IAcceleratedMinePool.sol";
-import "../PPTCoin/IPPTCoin.sol";
-import "../modules/Address.sol";
+import "../PhoenixModules/acceleratedMinePool/IAcceleratedMinePool.sol";
+import "../PhoenixModules/PPTCoin/IPPTCoin.sol";
+import "../PhoenixModules/modules/Address.sol";
 /**
  * @title leverage contract factory.
  * @dev A smart-contract which manage leverage smart-contract's and peripheries.
