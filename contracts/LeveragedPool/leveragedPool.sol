@@ -54,6 +54,7 @@ contract leveragedPool is leveragedData,safeTransfer{
         return (hedgeCoin.token,address(hedgeCoin.stakePool),address(hedgeCoin.leverageToken),hedgeCoin.leverageRate,hedgeCoin.rebalanceWorth);
     }
     function setLeverageFee(uint256 _buyFee,uint256 _sellFee,uint256 _rebalanceFee) OwnerOrOrigin external{
+        require(_buyFee<5e6 && _sellFee<5e6 &&_rebalanceFee<5e6,"Leverage fee is beyond the limit");
         buyFee = _buyFee;
         sellFee = _sellFee;
         rebalanceFee = _rebalanceFee;
