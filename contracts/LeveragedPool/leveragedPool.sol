@@ -19,15 +19,18 @@ contract leveragedPool is leveragedData,safeTransfer{
     }
     function setSwapRouterAddress(address _swapRouter)public onlyOwner{
         require(swapRouter != _swapRouter,"swapRouter : same address");
-        swapRouter = _swapRouter;
+   
         if(leverageCoin.token != address(0)){
             IERC20 oToken = IERC20(leverageCoin.token);
-            oToken.safeApprove(swapRouter,uint256(-1));
+            oToken.safeApprove(swapRouter,0);
+            oToken.safeApprove(_swapRouter,uint256(-1));
         }
         if(hedgeCoin.token != address(0)){
             IERC20 oToken = IERC20(hedgeCoin.token);
-            oToken.safeApprove(swapRouter,uint256(-1));
+            oToken.safeApprove(swapRouter,0);
+            oToken.safeApprove(_swapRouter,uint256(-1));
         }
+        swapRouter = _swapRouter;
     }
     function setSwapLibAddress(address _swapLib)public onlyOwner{
         phxSwapLib = _swapLib;

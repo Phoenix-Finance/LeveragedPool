@@ -6,7 +6,7 @@ import "../stakePool/IStakePool.sol";
 import "../PhoenixModules/modules/ReentrancyGuard.sol";
 import "../PhoenixModules/proxyModules/proxyOperator.sol";
 contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard{
-    uint256 constant internal currentVersion = 1;
+    uint256 constant internal currentVersion = 2;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
