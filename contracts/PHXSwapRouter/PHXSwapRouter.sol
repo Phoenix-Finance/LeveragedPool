@@ -23,6 +23,18 @@ contract PHXSwapRouter{
         uint256 rate = sellSmall.mul(calDecimal).add(sellBig.mul(slit)).mul(calDecimal)/(sellBig.mul(calDecimal).add(sellSmall.mul(slit)));
         return rate;
     }
+    function swapRebalance(address swapRouter,address token0,address token1,uint256 amountLev,uint256 amountHe,uint256[2] calldata prices,uint256 id)payable external returns (uint256,uint256){
+        uint256 key = (id>>128);
+        if (key == 0){
+            uint256 vulue = swapBuyAndBuy(swapRouter,token0,token1,amountLev,amountHe,prices);
+            return (vulue,0);
+        }else if(key == 1){
+            return swapSellAndSell(swapRouter,token0,token1,amountLev,amountHe,prices);
+        }else{
+            uint256 vulue = swapBuyAndSell(swapRouter,token0,token1,amountLev,amountHe,prices,uint8(id));
+            return (vulue,0);
+        }
+    }
     function swapBuyAndBuySub(address swapRouter,address token0,address token1,uint256 buyLev,uint256 buyHe,uint256[2] memory prices,uint8 id) internal returns (uint256){
         uint256 rate = calRate(swapRouter,token0,token1,buyLev,buyHe,prices,id);
         buyHe = buyHe.mul(rate)/calDecimal;
@@ -33,7 +45,7 @@ contract PHXSwapRouter{
             return 0;
         }
     }
-    function swapBuyAndBuy(address swapRouter,address token0,address token1,uint256 buyLev,uint256 buyHe,uint256[2] calldata prices) payable external returns (uint256){
+    function swapBuyAndBuy(address swapRouter,address token0,address token1,uint256 buyLev,uint256 buyHe,uint256[2] memory prices) payable public returns (uint256){
         uint256 buyLev1 = buyLev.mul(calDecimal);
         uint256 buyHe1 = buyHe.mulPrice(prices, 0);
         if(buyLev1 >= buyHe1){
@@ -54,7 +66,7 @@ contract PHXSwapRouter{
             return (sellHe.mul(calDecimal*calDecimal).divPrice(prices,id)/rate,sellHe);
         }
     }
-    function swapSellAndSell(address swapRouter,address token0,address token1,uint256 sellLev,uint256 sellHe,uint256[2] calldata prices) payable external returns (uint256,uint256){
+    function swapSellAndSell(address swapRouter,address token0,address token1,uint256 sellLev,uint256 sellHe,uint256[2] memory prices) payable public returns (uint256,uint256){
         uint256 sellLev1 = sellLev.mul(calDecimal);
         uint256 sellHe1 = sellHe.mulPrice(prices, 0);
         if(sellLev1 >= sellHe1){
@@ -64,7 +76,7 @@ contract PHXSwapRouter{
         }
         return (sellLev,sellHe);
     }
-    function swapBuyAndSell(address swapRouter,address token0,address token1,uint256 buyAmount,uint256 sellAmount,uint256[2] calldata prices,uint8 id)payable external returns (uint256){
+    function swapBuyAndSell(address swapRouter,address token0,address token1,uint256 buyAmount,uint256 sellAmount,uint256[2] memory prices,uint8 id)payable public returns (uint256){
         uint256 amountSell = buyAmount.add(sellAmount).add(sellAmount/10);
         uint256 rate = calSlit(swapRouter,token0,token1,amountSell,prices,id);
         sellAmount = sellAmount.mul(calDecimal)/rate;
