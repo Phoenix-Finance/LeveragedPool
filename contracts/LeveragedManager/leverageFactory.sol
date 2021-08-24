@@ -35,6 +35,10 @@ contract leverageFactory is leverageFactoryData{
         rebaseTimeLimit = 60;
     }
     function update() public versionUpdate {
+        baseCoinName = "BNB";
+        IPPTCoin(0x7B14ba7C2eb0DF20217102CBEb3daceC7182beC4).changeTokenName("PPT_BNB","PPT_BNB",18);
+        IRebaseToken(0x89E543f068E1c55ECb0f842a112E6736fE8920FE).changeTokenName("BNB_BULL_X3","BNB_BULL_X3",0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
+        IRebaseToken(0x2e25891288B647D4d0BE5280fa899E6E47D30F99).changeTokenName("BNB_BEAR_X3","BNB_BEAR_X3",0x0000000000000000000000000000000000000000);
     }
     function setImplementAddress(string memory _baseCoinName,address payable _feeAddress,address rebaseOperator,address _stakePoolImpl,address _leveragePoolImpl,address _PPTCoinImpl,
         address _rebaseTokenImpl,address acceleratedMinePool,address PHXVestingPool,address _phxOracle)public originOnce{
