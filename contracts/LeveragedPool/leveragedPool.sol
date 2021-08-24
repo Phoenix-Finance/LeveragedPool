@@ -176,10 +176,6 @@ contract leveragedPool is leveragedData,safeTransfer{
         }
         return returnData;
     }
-    function swapRebalance(address token0,address token1,uint256 amountLev,uint256 amountHe,uint256[2] memory prices,uint256 id)internal returns (uint256,uint256){
-        return abi.decode(delegateCallSwap(abi.encodeWithSignature("swapRebalance(address,address,address,uint256,uint256,uint256[2],uint256)",
-            swapRouter,token0,token1,amountLev,amountHe,prices,id)), (uint256,uint256));
-    }
     function _swap(address token0,address token1,uint256 amountSell) internal returns (uint256){
         return abi.decode(delegateCallSwap(abi.encodeWithSignature("swap(address,address,address,uint256)",swapRouter,token0,token1,amountSell)), (uint256));
     }
@@ -325,22 +321,18 @@ contract leveragedPool is leveragedData,safeTransfer{
             hedgeCoin.stakePool.borrowAndInterest(buyHe);
         }
         if (buyLev > 0 && buyHe>0){
-            swapRebalance(leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice,0);
-//            delegateCallSwap(abi.encodeWithSignature("swapBuyAndBuy(address,address,address,uint256,uint256,uint256[2])",
-//                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice));
+            delegateCallSwap(abi.encodeWithSignature("swapBuyAndBuy(address,address,address,uint256,uint256,uint256[2])",
+                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice));
         }else if(buyLev>0){
-            swapRebalance(leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,2<<128);
-//            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
-//                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,0));
+            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
+                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,0));
         }else if(buyHe>0){
-            swapRebalance(hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,2<<128+1);
-//            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
-//                swapRouter,hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,1));
+            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
+                swapRouter,hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,1));
         }else{
             if(sellLev>0 || sellHe> 0){
-            (sellLev,sellHe)= swapRebalance(leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice,1<<128);
-//                (sellLev,sellHe)= abi.decode(delegateCallSwap(abi.encodeWithSignature("swapSellAndSell(address,address,address,uint256,uint256,uint256[2])",
-//                    swapRouter,leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice)), (uint256,uint256));
+                (sellLev,sellHe)= abi.decode(delegateCallSwap(abi.encodeWithSignature("swapSellAndSell(address,address,address,uint256,uint256,uint256[2])",
+                    swapRouter,leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice)), (uint256,uint256));
             }
         }
         if(buyLev == 0){

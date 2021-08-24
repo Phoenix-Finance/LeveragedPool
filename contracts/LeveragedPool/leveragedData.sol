@@ -4,7 +4,8 @@ import "../PhoenixModules/interface/IPHXOracle.sol";
 import "../rebaseToken/IRebaseToken.sol";
 import "../stakePool/IStakePool.sol";
 import "../PhoenixModules/modules/ReentrancyGuard.sol";
-contract leveragedData is ImportOracle,versionUpdater,ReentrancyGuard{
+import "../PhoenixModules/proxyModules/proxyOperator.sol";
+contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard{
     uint256 constant internal currentVersion = 2;
     function implementationVersion() public pure returns (uint256) 
     {
