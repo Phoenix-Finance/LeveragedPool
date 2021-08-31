@@ -10,7 +10,17 @@ contract UniSwapRouter is PHXSwapRouter{
     constructor()public{
 
     }
-    function getSwapPath(address swapRouter,address token0,address token1) internal pure returns (address[] memory path){
+    function getSwapPath(address swapRouter,address token0,address token1) internal view returns (address[] memory path){
+        (bool success, bytes memory returnData) = address(this).staticcall(abi.encodeWithSignature("getSwapRoutingPath(address,address)",token0,token1));
+        assembly {
+            if eq(success, 0) {
+                revert(add(returnData, 0x20), returndatasize)
+            }
+        }
+        path = abi.decode(returnData, (address[]));
+        if(path.length>0){
+            return path;
+        }
         IUniswapV2Router02 IUniswap = IUniswapV2Router02(swapRouter);
         path = new address[](2);
         path[0] = token0 == address(0) ? IUniswap.WETH() : token0;
@@ -22,8 +32,8 @@ contract UniSwapRouter is PHXSwapRouter{
             address[] memory path = getSwapPath(swapRouter,token0,token1);
             uint[] memory amounts = IUniswap.getAmountsOut(sellAmount, path);
             //emit Swap(swapRouter,address(0x22),amounts[0],amounts[1]);
-            if(amounts[1]>0){
-                return amounts[1].mulPrice(prices,id)/amounts[0];
+            if(amounts[amounts.length-1]>0){
+                return amounts[amounts.length-1].mulPrice(prices,id)/amounts[0];
             }
         }
         return calDecimal;
@@ -36,19 +46,13 @@ contract UniSwapRouter is PHXSwapRouter{
     }
     function _swap(address swapRouter,address token0,address token1,uint256 amount0) internal returns (uint256) {
         IUniswapV2Router02 IUniswap = IUniswapV2Router02(swapRouter);
-        address[] memory path = new address[](2);
+        address[] memory path = getSwapPath(swapRouter,token0,token1);
         uint256[] memory amounts;
         if(token0 == address(0)){
-            path[0] = IUniswap.WETH();
-            path[1] = token1;
             amounts = IUniswap.swapExactETHForTokens.value(amount0)(0, path,address(this), now+30);
         }else if(token1 == address(0)){
-            path[0] = token0;
-            path[1] = IUniswap.WETH();
             amounts = IUniswap.swapExactTokensForETH(amount0,0, path, address(this), now+30);
         }else{
-            path[0] = token0;
-            path[1] = token1;
             amounts = IUniswap.swapExactTokensForTokens(amount0,0, path, address(this), now+30);
         }
         emit Swap(token0,token1,amounts[0],amounts[amounts.length-1]);

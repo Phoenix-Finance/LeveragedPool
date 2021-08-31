@@ -32,6 +32,12 @@ contract leveragedPool is leveragedData,safeTransfer{
         }
         swapRouter = _swapRouter;
     }
+    function getSwapRoutingPath(address token0,address token1) public view returns (address[] memory) {
+        return swapRoutingPath[token0][token1];
+    }
+    function setSwapRoutingPath(address token0,address token1,address[] calldata swapPath) external onlyOrigin {
+        swapRoutingPath[token0][token1] = swapPath;
+    }
     function setSwapLibAddress(address _swapLib)public onlyOwner{
         phxSwapLib = _swapLib;
     }
@@ -303,12 +309,16 @@ contract leveragedPool is leveragedData,safeTransfer{
             return (newUnderlying-oldUnderlying,0);
         }
     }
+    function swapRebalance(address token0,address token1,uint256 amountLev,uint256 amountHe,uint256[2] memory prices,uint256 id)internal returns (uint256,uint256){
+        return abi.decode(delegateCallSwap(abi.encodeWithSignature("swapRebalance(address,address,address,uint256,uint256,uint256[2],uint256)",
+            swapRouter,token0,token1,amountLev,amountHe,prices,id)), (uint256,uint256));
+    }
     function rebalance() getUnderlyingPrice OwnerOrOrigin external {
         _rebalance();
     }
     function _rebalance() internal {
-        uint256 levSlip = calAverageSlip(leverageCoin);
-        uint256 heSlip = calAverageSlip(hedgeCoin);
+//        uint256 levSlip = calAverageSlip(leverageCoin);
+//        uint256 heSlip = calAverageSlip(hedgeCoin);
         (uint256 buyLev,uint256 sellLev) = _settle(leverageCoin);
         emit Rebalance(msg.sender,leverageCoin.token,buyLev,sellLev);
         (uint256 buyHe,uint256 sellHe) = _settle(hedgeCoin);
@@ -321,18 +331,22 @@ contract leveragedPool is leveragedData,safeTransfer{
             hedgeCoin.stakePool.borrowAndInterest(buyHe);
         }
         if (buyLev > 0 && buyHe>0){
-            delegateCallSwap(abi.encodeWithSignature("swapBuyAndBuy(address,address,address,uint256,uint256,uint256[2])",
-                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice));
+            swapRebalance(leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice,0);
+//            delegateCallSwap(abi.encodeWithSignature("swapBuyAndBuy(address,address,address,uint256,uint256,uint256[2])",
+//                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice));
         }else if(buyLev>0){
-            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
-                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,0));
+            swapRebalance(leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,2<<128);
+//            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
+//                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,0));
         }else if(buyHe>0){
-            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
-                swapRouter,hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,1));
+            swapRebalance(hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,2<<128+1);
+//            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
+//                swapRouter,hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,1));
         }else{
             if(sellLev>0 || sellHe> 0){
-                (sellLev,sellHe)= abi.decode(delegateCallSwap(abi.encodeWithSignature("swapSellAndSell(address,address,address,uint256,uint256,uint256[2])",
-                    swapRouter,leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice)), (uint256,uint256));
+            (sellLev,sellHe)= swapRebalance(leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice,1<<128);
+//                (sellLev,sellHe)= abi.decode(delegateCallSwap(abi.encodeWithSignature("swapSellAndSell(address,address,address,uint256,uint256,uint256[2])",
+//                    swapRouter,leverageCoin.token,hedgeCoin.token,sellLev,sellHe,currentPrice)), (uint256,uint256));
             }
         }
         if(buyLev == 0){
@@ -341,8 +355,8 @@ contract leveragedPool is leveragedData,safeTransfer{
         if(buyHe == 0){
             _repayAndInterest(hedgeCoin,sellHe);
         }
-        calLeverageInfo(leverageCoin,levSlip);
-        calLeverageInfo(hedgeCoin,heSlip);
+        calLeverageInfo(leverageCoin);
+        calLeverageInfo(hedgeCoin);
     }
     function calAverageSlip(leverageInfo memory coinInfo) internal view returns(uint256) {
         uint256 loan = coinInfo.stakePool.loan(address(this));
@@ -352,10 +366,10 @@ contract leveragedPool is leveragedData,safeTransfer{
             return feeDecimal;
         }
     }
-    function calLeverageInfo(leverageInfo storage coinInfo,uint256 swapSlip) internal{
+    function calLeverageInfo(leverageInfo storage coinInfo) internal{
         uint256 tokenNum = coinInfo.leverageToken.totalSupply();
         if(tokenNum > 0){
-            uint256 balance = underlyingBalance(coinInfo.id).mulPrice(rebalancePrices, coinInfo.id).mul(feeDecimal)/swapSlip;
+            uint256 balance = underlyingBalance(coinInfo.id).mulPrice(rebalancePrices, coinInfo.id);
             uint256 loan = coinInfo.stakePool.loan(address(this));
             uint256 totalWorth = balance.sub(loan.mul(calDecimal));
             coinInfo.leverageRate = balance.mul(feeDecimal)/totalWorth;
