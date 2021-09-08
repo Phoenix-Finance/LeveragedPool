@@ -77,10 +77,8 @@ contract PHXSwapRouter{
         return (sellLev,sellHe);
     }
     function swapBuyAndSell(address swapRouter,address token0,address token1,uint256 buyAmount,uint256 sellAmount,uint256[2] memory prices,uint8 id)payable public returns (uint256){
-        uint256 amountSell = buyAmount.add(sellAmount).add(sellAmount/10);
-        uint256 rate = calSlit(swapRouter,token0,token1,amountSell,prices,id);
-        sellAmount = sellAmount.mul(calDecimal)/rate;
-        return _swap(swapRouter,token0,token1,buyAmount.add(sellAmount));
+        uint256 amountSell = getAmountIn(swapRouter,token0,token1,sellAmount);
+        return _swap(swapRouter,token0,token1,buyAmount.add(amountSell));
     }
     function sellExactAmount(address swapRouter,address token0,address token1,uint256 amountout) payable external returns (uint256,uint256){
         uint256 amountSell = getAmountIn(swapRouter,token0,token1,amountout);

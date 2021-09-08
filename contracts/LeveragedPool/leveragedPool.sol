@@ -17,7 +17,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     }
     function update() external versionUpdate {
     }
-    function setSwapRouterAddress(address _swapRouter)public onlyOwner{
+    function setSwapRouterAddress(address _swapRouter)public OwnerOrOrigin{
         require(swapRouter != _swapRouter,"swapRouter : same address");
    
         if(leverageCoin.token != address(0)){
@@ -38,7 +38,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     function setSwapRoutingPath(address token0,address token1,address[] calldata swapPath) external onlyOrigin {
         swapRoutingPath[token0][token1] = swapPath;
     }
-    function setSwapLibAddress(address _swapLib)public onlyOwner{
+    function setSwapLibAddress(address _swapLib)public OwnerOrOrigin{
         phxSwapLib = _swapLib;
     }
     function setFeeAddress(address payable addrFee) onlyOwner external {
@@ -185,7 +185,7 @@ contract leveragedPool is leveragedData,safeTransfer{
     function _swap(address token0,address token1,uint256 amountSell) internal returns (uint256){
         return abi.decode(delegateCallSwap(abi.encodeWithSignature("swap(address,address,address,uint256)",swapRouter,token0,token1,amountSell)), (uint256));
     }
-    function _buy(leverageInfo memory coinInfo,uint256 amount,uint256 minAmount,uint256 deadLine,bool bFirstToken) ensure(deadLine) nonReentrant getUnderlyingPrice internal{
+    function _buy(leverageInfo memory coinInfo,uint256 amount,uint256 minAmount,uint256 deadLine,bool bFirstToken) ensure(deadLine) notHalted nonReentrant getUnderlyingPrice internal{
         address inputToken;
         if(bFirstToken){
             inputToken = coinInfo.token;
@@ -316,6 +316,14 @@ contract leveragedPool is leveragedData,safeTransfer{
     function rebalance() getUnderlyingPrice OwnerOrOrigin external {
         _rebalance();
     }
+    function setForceRebase(uint256 id) external onlyOrigin {
+        require(id == 0 || id == 1 ,"leverageInfo id is error!");
+        if (id == 0){
+            leverageCoin.bRebase = true;
+        }else{
+            hedgeCoin.bRebase = true;
+        }
+    }
     function _rebalance() internal {
 //        uint256 levSlip = calAverageSlip(leverageCoin);
 //        uint256 heSlip = calAverageSlip(hedgeCoin);
@@ -335,11 +343,11 @@ contract leveragedPool is leveragedData,safeTransfer{
 //            delegateCallSwap(abi.encodeWithSignature("swapBuyAndBuy(address,address,address,uint256,uint256,uint256[2])",
 //                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,buyHe,currentPrice));
         }else if(buyLev>0){
-            swapRebalance(leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,2<<128);
+            swapRebalance(leverageCoin.token,hedgeCoin.token,buyLev,sellHe,currentPrice,2<<128);
 //            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
 //                swapRouter,leverageCoin.token,hedgeCoin.token,buyLev,sellHe.mulPrice(currentPrice,0)/calDecimal,currentPrice,0));
         }else if(buyHe>0){
-            swapRebalance(hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,2<<128+1);
+            swapRebalance(hedgeCoin.token,leverageCoin.token,buyHe,sellLev,currentPrice,(2<<128)+1);
 //            delegateCallSwap(abi.encodeWithSignature("swapBuyAndSell(address,address,address,uint256,uint256,uint256[2],uint8)",
 //                swapRouter,hedgeCoin.token,leverageCoin.token,buyHe,sellLev.mulPrice(currentPrice,1)/calDecimal,currentPrice,1));
         }else{
@@ -470,5 +478,18 @@ contract leveragedPool is leveragedData,safeTransfer{
     modifier getUnderlyingPrice(){
         currentPrice = getUnderlyingPriceView();
         _;
+    }
+    modifier notHalted() {
+        require(!halted,"This contract is halted");
+        _;
+    }
+
+    /// @notice function Emergency situation that requires 
+    /// @notice contribution period to stop or not.
+    function setHalt(bool halt) 
+        public 
+        onlyOrigin
+    {
+        halted = halt;
     }
 }

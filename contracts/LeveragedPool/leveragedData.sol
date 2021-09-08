@@ -6,7 +6,7 @@ import "../stakePool/IStakePool.sol";
 import "../PhoenixModules/modules/ReentrancyGuard.sol";
 import "../PhoenixModules/proxyModules/proxyOperator.sol";
 contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGuard{
-    uint256 constant internal currentVersion = 4;
+    uint256 constant internal currentVersion = 6;
     function implementationVersion() public pure returns (uint256) 
     {
         return currentVersion;
@@ -38,6 +38,8 @@ contract leveragedData is ImportOracle,versionUpdater,proxyOperator,ReentrancyGu
 
     address payable public feeAddress;
     uint256 public rebalanceTol;
+
+    bool internal halted; 
 
     mapping(address=>mapping(address=>address[])) internal swapRoutingPath;
     event Swap(address indexed fromCoin,address indexed toCoin,uint256 fromValue,uint256 toValue);
