@@ -16,7 +16,10 @@ import "../uniswap/IUniswapV2Router02.sol";
  */
 contract leverageDashboard is leverageDashboardData{
     using SafeMath for uint256;
-    function setLeverageFactory(address leverageFactory) external OwnerOrOrigin{
+    constructor (address multiSignature) proxyOwner(multiSignature) public{
+    }
+
+    function setLeverageFactory(address leverageFactory) external originOnce{
         factory = ILeverageFactory(leverageFactory);
     }
     function buyPricesUSD(address leveragedPool) public view returns(uint256,uint256){
@@ -96,7 +99,15 @@ contract leverageDashboard is leverageDashboardData{
     }
     function sellAmountsOut(address leveragedPool,uint8 id, uint256 amount,address outToken)internal view returns(uint256,uint256,uint256,uint256){
         ILeveragedPool pool = ILeveragedPool(leveragedPool);
-        address token0;address token1;
+        (address token0,address token1,uint256 userLoan,uint256 userPayback) = getPoolInfo(pool,id,amount);
+        if (outToken == token1){
+            return getSellAmountsIn(pool,id,token0,token1,userLoan,userPayback);
+        }else{
+            return getSellAmountsOut(pool,id,token0,token1,userLoan,userPayback);
+        }
+    }
+    function getPoolInfo(ILeveragedPool pool,uint8 id, uint256 amount)internal view returns(address,address,uint256,uint256){
+                address token0;address token1;
         uint256 networth;uint256 leverageRate;uint256 rebalanceWorth;
         if (id == 0){
             (token0,,,leverageRate,rebalanceWorth) = pool.getLeverageInfo();
@@ -109,32 +120,45 @@ contract leverageDashboard is leverageDashboardData{
         }
         uint256 userLoan = (amount.mul(rebalanceWorth)/feeDecimal).mul(leverageRate-feeDecimal);
         uint256 userPayback =  amount.mul(networth);
+        return (token0,token1,userLoan,userPayback);
+    }
+    function getSellAmountsIn(ILeveragedPool pool,uint8 id,address token0,address token1,uint256 userLoan,uint256 userPayback) internal view
+        returns(uint256,uint256,uint256,uint256) {
         uint256[2]memory prices = pool.getUnderlyingPriceView();
-        uint256 swapRate;
-        uint256 amountIn;
-        uint256 amountOut;
-        
-        address router = pool.swapRouter();
-        IUniswapV2Router02 IUniswap = IUniswapV2Router02(router);
-        address[] memory path = getSwapPath(pool,router,token0,token1);
-        if (outToken == token1){
-            uint256 sellAmount = userLoan.divPrice(prices,id);
-            amountOut = userLoan/calDecimal;
-            uint[] memory amounts = IUniswap.getAmountsIn(amountOut, path);
-            amountIn = amounts[0];
-            swapRate = amounts[0].mul(feeDecimal)/sellAmount;
-            sellAmount = userLoan.add(userPayback).divPrice(prices,id);
-            userPayback = sellAmount - amounts[0];
-        }else{
-            amountIn = userLoan.add(userPayback).divPrice(prices,id);
-            uint[] memory amounts = IUniswap.getAmountsOut(amountIn, path);
-            amountOut = amounts[amounts.length-1];
-            swapRate = amountOut.mul(feeDecimal)/(userLoan.add(userPayback)/calDecimal);
-            userPayback = amountOut-userLoan/calDecimal;
-        }
+        uint256 sellAmount = userLoan.divPrice(prices,id);
+        uint256 amountOut = userLoan/calDecimal;
+        uint256 amountIn = getSwapAmountsIn(pool,token0,token1,amountOut);
+        uint256 swapRate = amountIn.mul(feeDecimal)/sellAmount;
+        sellAmount = userLoan.add(userPayback).divPrice(prices,id);
+        userPayback = sellAmount - amountIn;
         uint256 sellFee = pool.sellFee();
         userPayback = userPayback.mul(feeDecimal-sellFee)/feeDecimal; 
         return (userPayback,amountIn,amountOut,swapRate);
+    }
+    function getSellAmountsOut(ILeveragedPool pool,uint8 id,address token0,address token1,uint256 userLoan,uint256 userPayback) internal view
+        returns(uint256,uint256,uint256,uint256) {
+        uint256[2]memory prices = pool.getUnderlyingPriceView();
+        uint256 amountIn = userLoan.add(userPayback).divPrice(prices,id);
+        uint256 amountOut = getSwapAmountsOut(pool,token0,token1,amountIn);
+        uint256 swapRate = amountOut.mul(feeDecimal)/(userLoan.add(userPayback)/calDecimal);
+        userPayback = amountOut-userLoan/calDecimal;
+        uint256 sellFee = pool.sellFee();
+        userPayback = userPayback.mul(feeDecimal-sellFee)/feeDecimal; 
+        return (userPayback,amountIn,amountOut,swapRate);
+    }
+    function getSwapAmountsIn(ILeveragedPool pool,address token0,address token1,uint256 amountOut)internal view returns (uint256){
+        address router = pool.swapRouter();
+        IUniswapV2Router02 IUniswap = IUniswapV2Router02(router);
+        address[] memory path = getSwapPath(pool,router,token0,token1);
+        uint[] memory amounts = IUniswap.getAmountsIn(amountOut, path);
+        return amounts[0];
+    }
+    function getSwapAmountsOut(ILeveragedPool pool,address token0,address token1,uint256 amountIn)internal view returns (uint256){
+        address router = pool.swapRouter();
+        IUniswapV2Router02 IUniswap = IUniswapV2Router02(router);
+        address[] memory path = getSwapPath(pool,router,token0,token1);
+        uint[] memory amounts = IUniswap.getAmountsOut(amountIn, path);
+        return amounts[amounts.length-1];
     }
     function getSwapPath(ILeveragedPool pool,address swapRouter,address token0,address token1) internal view returns (address[] memory path){
         path = pool.getSwapRoutingPath(token0,token1);
