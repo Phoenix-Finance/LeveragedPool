@@ -13,4 +13,9 @@ interface ILeveragedPool {
     function getHedgeInfo() external view returns (address,address,address,uint256,uint256);
     function buyPrices() external view returns(uint256,uint256);
     function getUnderlyingPriceView() external view returns(uint256[2]memory);
+    function getTokenNetworths() external view returns(uint256,uint256);
+    function swapRouter() external view returns(address);
+    function sellFee() external view returns(uint256);
+    function getSwapRoutingPath(address token0,address token1) external view returns (address[] memory);
 }
+

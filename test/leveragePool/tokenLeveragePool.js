@@ -16,7 +16,8 @@ contract('leveragedPool', function (accounts){
         eventDecoder.initEventsMap([FPTCoinAbi,leveragedPoolAbi,stakePoolAbi]);
     }); 
     it('leveragedPool normal tests', async function (){
-        await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts);
+        console.log(eventDecoder.eventsMap);
+        //await testToken(beforeInfo.USDC,beforeInfo.WBTC,beforeInfo,accounts);
         //await testToken(beforeInfo.USDC,beforeInfo.WETH,beforeInfo,accounts);
     });
     return;
@@ -61,6 +62,7 @@ contract('leveragedPool', function (accounts){
             pair = await beforeInfo.uniFactory.getPair(tokenA.address,tokenB.address);
         }
         beforeInfo.pair = pair;
+        
         /*
         let tokenaBalance = await tokenA.balanceOf(factoryInfo.uniSync.address);
         let tokenbBalance = await tokenB.balanceOf(factoryInfo.uniSync.address);
@@ -80,6 +82,8 @@ contract('leveragedPool', function (accounts){
         console.log(priceA.toString(),priceB.toString());
         await testInfo.setOraclePrice(assets,prices,factoryInfo,beforeInfo.pair,accounts[0]);
         let contracts = await testInfo.createTokenLeveragePool(tokenA,tokenB,factoryInfo,beforeInfo,accounts[0],accounts);
+        await testInfo.multiSignatureAndSend(factoryInfo.multiSignature,contracts.leveragePool,"setSwapRoutingPath",
+        accounts[0],accounts,tokenA.address,tokenB.address,[tokenA.address,eth])
         let netWroth = await contracts.leveragePool.getTokenNetworths();
         console.log("net worth : ",netWroth[0].toString(),netWroth[1].toString());
         receipt = await factoryInfo.factory.rebalanceAll();

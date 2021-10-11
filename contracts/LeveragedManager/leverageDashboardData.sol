@@ -20,4 +20,5 @@ contract leverageDashboardData is versionUpdater {
     }
     ILeverageFactory public factory;
     uint256 constant internal feeDecimal = 1e8; 
+    uint256 constant internal calDecimal = 1e18; 
 }

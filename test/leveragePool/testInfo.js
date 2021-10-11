@@ -1,4 +1,5 @@
 const BN = require("bn.js");
+const fs = require('fs');
 let contractInfo = require("./testInfo.json");
 const leveragedPool = artifacts.require("leveragedPool");
 const rebaseToken = artifacts.require("rebaseToken");
@@ -8,7 +9,7 @@ const PHXOracle = artifacts.require("PHXOracle");
 const leverageFactory = artifacts.require("leverageFactory");
 const phxProxy = artifacts.require("phxProxy");
 const acceleratedMinePool = artifacts.require("acceleratedMinePool");
-const PHXAccelerator = artifacts.require("PHXAccelerator");
+const PHXVestingPool = artifacts.require("PHXVestingPool");
 const multiSignature = artifacts.require("multiSignature");
 const IUniswapV2Router02 = artifacts.require("IUniswapV2Router02");
 const IUniswapV2Factory = artifacts.require("IUniswapV2Factory");
@@ -58,8 +59,8 @@ module.exports = {
             contractInfo.SYNC = sync.address;
             fs.writeFileSync('./testInfo.json', JSON.stringify(contractInfo,null,4));
         }else{
-            oracle = await PHXOracle.at("0x42d04599c41580C99f6F9cf26Ac7999Ef0cA8C36");
-            sync = await uniswapSync.at("0xE948e0674044d9983E4864b74E440a655E2b14a9");
+            oracle = await PHXOracle.at(contractInfo.ORACLE);
+            sync = await uniswapSync.at(contractInfo.SYNC);
         }
         let stakeimple = await stakePool.new(multiSign.address,{from:account});
         let lToken = await leveragedPool.new(multiSign.address,{from:account});
@@ -68,7 +69,7 @@ module.exports = {
         let vestingPool = await PHXVestingPool.new(multiSign.address,{from:account});
         let vestingPoolProxy = await phxProxy.new(vestingPool.address,multiSign.address,{from:account});
         vestingPool = await PHXVestingPool.at(vestingPoolProxy.address)
-        await vestingPool.initMineLockedInfo(1622995200,86400*90,12,86400*15);
+        await vestingPool.initMineLockedInfo(1622995200,86400*30,36);
         let minePool = await acceleratedMinePool.new(multiSign.address,{from:account})
         let lFactory = await leverageFactory.new(multiSign.address,{from:account});
         proxy = await phxProxy.new(lFactory.address,multiSign.address,{from:account});
