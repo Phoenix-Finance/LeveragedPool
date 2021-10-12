@@ -25,7 +25,7 @@ contract leverageDashboard is leverageDashboardData{
     function buyPricesUSD(ILeveragedPool pool) public view returns(uint256,uint256){
         uint256[2]memory prices = pool.getUnderlyingPriceView();
         (uint256 leveragePrice,uint256 hedgePrice) = pool.buyPrices();
-        return (leveragePrice*prices[0],hedgePrice*prices[1]);
+        return (leveragePrice*prices[0]/calDecimal,hedgePrice*prices[1]/calDecimal);
     }
     function getLeveragePurchasableAmount(ILeveragedPool pool) public view returns(uint256){
         (,address stakePool,,uint256 leverageRate,) = pool.getLeverageInfo();
@@ -54,37 +54,50 @@ contract leverageDashboard is leverageDashboardData{
         return amountLimit.mul(calDecimal)/price;
     }
     function buyLeverageAmountsOut(ILeveragedPool pool,address token, uint256 amount)external view returns(uint256,uint256,uint256,uint256){
-        (address token0,address token1,uint256 userLoan,) = getPoolInfo(pool,0,amount);
-        (uint256 amountIn,uint256 amountOut,uint256 swapRate) = getBuySwapInfo(pool,token,token0,token1,amount,userLoan);
-        {
-            (uint256 leveragePrice,) = pool.buyPrices(); 
-            if (token == token0){
-                amount = amount.mul(calDecimal)/leveragePrice;
-            }else if(token == token1){
-                amount = amount.mulPrice(pool.getUnderlyingPriceView(),0)/leveragePrice;
-            }else{
-                require(false,"Input token is illegal");
-            }
-        }
-        require(amount<=getLeveragePurchasableAmount(pool),"Stake pool loan is insufficient!");
-        return (amount,amountIn,amountOut,swapRate);
+        (address token0,address token1,uint256 userLoan,uint256 levAmount) = getBuyPoolInfo(pool,0,token,amount);
+        require(levAmount<=getLeveragePurchasableAmount(pool),"Stake pool loan is insufficient!");
+        uint256 amountOut;
+        uint256 swapRate;
+        (userLoan,amountOut,swapRate) = getBuySwapInfo(pool,token,token0,token1,amount,userLoan);
+        return (levAmount,userLoan,amountOut,swapRate);
     }
     function buyHedgeAmountsOut(ILeveragedPool pool,address token, uint256 amount)external view returns(uint256,uint256,uint256,uint256){
-        (address token0,address token1,uint256 userLoan,) = getPoolInfo(pool,1,amount);
-
-        (uint256 amountIn,uint256 amountOut,uint256 swapRate) = getBuySwapInfo(pool,token,token0,token1,amount,userLoan);
-        {
-            (,uint256 hedgePrice) = pool.buyPrices(); 
+        (address token0,address token1,uint256 userLoan,uint256 levAmount) = getBuyPoolInfo(pool,1,token,amount);
+        require(levAmount<=getHedgePurchasableAmount(pool),"Stake pool loan is insufficient!");
+        uint256 amountOut;
+        uint256 swapRate;
+        (userLoan,amountOut,swapRate) = getBuySwapInfo(pool,token,token0,token1,amount,userLoan);
+        return (levAmount,userLoan,amountOut,swapRate);
+    }
+    function getBuyPoolInfo(ILeveragedPool pool,uint8 id, address token, uint256 amount)internal view returns(address,address,uint256,uint256){
+        address token0;address token1;
+        uint256 leverageRate;uint256 rebalanceWorth;
+        uint256 levAmount;
+        if (id == 0){
+            (token0,,,leverageRate,rebalanceWorth) = pool.getLeverageInfo();
+            (token1,,,,) = pool.getHedgeInfo();
+            (uint256 leveragePrice,) = pool.buyPrices(); 
             if (token == token0){
-                amount = amount.mul(calDecimal)/hedgePrice;
+                levAmount = amount.mul(calDecimal)/leveragePrice;
             }else if(token == token1){
-                amount = amount.mulPrice(pool.getUnderlyingPriceView(),1)/hedgePrice;
+                levAmount = amount.mulPrice(pool.getUnderlyingPriceView(),0)/leveragePrice;
             }else{
                 require(false,"Input token is illegal");
             }
-            require(amount<=getHedgePurchasableAmount(pool),"Stake pool loan is insufficient!");
+        }else{
+            (token0,,,leverageRate,rebalanceWorth) = pool.getHedgeInfo();
+            (token1,,,,) = pool.getLeverageInfo();
+            (,uint256 hedgePrice) = pool.buyPrices(); 
+            if (token == token0){
+                levAmount = amount.mul(calDecimal)/hedgePrice;
+            }else if(token == token1){
+                levAmount = amount.mulPrice(pool.getUnderlyingPriceView(),1)/hedgePrice;
+            }else{
+                require(false,"Input token is illegal");
+            }
         }
-        return (amount,amountIn,amountOut,swapRate);
+        uint256 userLoan = (levAmount.mul(rebalanceWorth)/feeDecimal).mul(leverageRate-feeDecimal);
+        return (token0,token1,userLoan,levAmount);
     }
     function getBuySwapInfo(ILeveragedPool pool,address token,address token0,address token1,uint256 amount,uint256 userLoan)
         internal view returns (uint256 amountIn,uint256 amountOut,uint256 swapRate){
