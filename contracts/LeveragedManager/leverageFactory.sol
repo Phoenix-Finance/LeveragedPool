@@ -171,6 +171,7 @@ contract leverageFactory is leverageFactoryData{
     function createAcceleratedMinePool()internal returns(address){
         address payable newCoin = createPhxProxy(MinePoolID);
         IAcceleratedMinePool(newCoin).setPHXVestingPool(vestingPool);
+        Address.functionCall(vestingPool,abi.encodeWithSignature("addMinePool(address)",newCoin));
         return newCoin;
     }
     function createPhxProxy(uint256 index) internal returns (address payable){
